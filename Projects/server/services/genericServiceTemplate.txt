@@ -1,0 +1,5 @@
+This folder contains service modules that call stored procedures.
+
+Each service should export: getAll, getById, create, update, delete
+
+Example pattern used in codebase: call pool.request().input(...).execute('sp_name') and return result.recordset[0] or recordset.

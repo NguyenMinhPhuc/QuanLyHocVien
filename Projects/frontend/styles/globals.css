@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* small custom styles used for the avatar menu positioning */
+.avatar-menu .menu {
+  @apply absolute right-0 top-12 bg-white border rounded-md shadow-lg min-w-[160px] z-50
+}
+
+.avatar-menu .menu button {
+  @apply block w-full text-left px-3 py-2 hover:bg-gray-100
+}
+
+html {
+  height: 100%;
+}
+
+body,
+#__next {
+  height: 100%;
+}
+
+@layer base {
+  body {
+    @apply text-slate-900 bg-gray-50;
+  }
+
+  html.dark body {
+    @apply text-slate-100 bg-slate-900;
+  }
+
+  /* ensure links and headings get proper contrast */
+  a {
+    @apply text-slate-900 dark:text-slate-100
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-slate-900 dark:text-slate-100
+  }
+}
