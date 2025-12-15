@@ -19,7 +19,7 @@ export default function Login() {
     }
     setLoading(true)
     try {
-      const res = await authFetch('http://localhost:4000/api/auth/login', {
+      const res = await authFetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: username.trim(), password })

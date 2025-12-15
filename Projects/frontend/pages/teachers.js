@@ -21,7 +21,7 @@ export default function Teachers() {
   async function load() {
     setLoading(true)
     try {
-      const res = await authFetch('http://localhost:4000/api/teachers')
+      const res = await authFetch('/api/teachers')
       if (!res.ok) throw new Error('Failed to load')
       const data = await res.json()
       setTeachers(data)
@@ -71,9 +71,9 @@ export default function Teachers() {
       const payload = { name: form.name, phone: form.phone, email: form.email, status: form.status }
       let res
       if (editing) {
-        res = await authFetch(`http://localhost:4000/api/teachers/${editing.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+        res = await authFetch(`/api/teachers/${editing.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       } else {
-        res = await authFetch('http://localhost:4000/api/teachers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+        res = await authFetch('/api/teachers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       }
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || JSON.stringify(data))
@@ -85,7 +85,7 @@ export default function Teachers() {
   async function editTeacher(t) {
     setError(null)
     try {
-      const res = await authFetch(`http://localhost:4000/api/teachers/${t.id}`)
+      const res = await authFetch(`/api/teachers/${t.id}`)
       if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b.error || 'Failed to fetch teacher') }
       const teacher = await res.json()
       setEditing(teacher)
@@ -97,7 +97,7 @@ export default function Teachers() {
   async function removeTeacher(id) {
     if (!confirm('Xác nhận xóa giáo viên?')) return
     try {
-      const res = await authFetch(`http://localhost:4000/api/teachers/${id}`, { method: 'DELETE' })
+      const res = await authFetch(`/api/teachers/${id}`, { method: 'DELETE' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || JSON.stringify(data))
       await load()
@@ -201,7 +201,7 @@ export default function Teachers() {
                       <select value={t.status || 'active'} onChange={async (e) => {
                         const newStatus = e.target.value
                         try {
-                          const res = await authFetch(`http://localhost:4000/api/teachers/${t.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) })
+                          const res = await authFetch(`/api/teachers/${t.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) })
                           const body = await res.json().catch(() => ({}))
                           if (!res.ok) throw new Error(body.error || 'Failed to update status')
                           await load()

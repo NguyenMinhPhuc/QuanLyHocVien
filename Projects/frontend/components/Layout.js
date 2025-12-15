@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Sidebar from './Sidebar'
 import Header from './Header'
+import { authFetch } from '../lib/auth'
 
 export default function Layout({ children }) {
   const [collapsed, setCollapsed] = useState(false)
@@ -20,7 +21,7 @@ export default function Layout({ children }) {
 
   useEffect(() => {
     // attempt to load basic user info from /api/me
-    fetch('http://localhost:4000/api/me', { credentials: 'include' })
+    authFetch('/api/me')
       .then(r => r.ok ? r.json() : null)
       .then(setUser).catch(() => { })
   }, [])

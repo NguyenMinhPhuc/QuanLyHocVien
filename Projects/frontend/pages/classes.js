@@ -44,7 +44,7 @@ export default function Classes() {
   async function load() {
     setLoading(true)
     try {
-      const res = await authFetch('http://localhost:4000/api/classes')
+      const res = await authFetch('/api/classes')
       if (!res.ok) throw new Error('Failed to load classes')
       const data = await res.json()
       setClasses(data)
@@ -55,8 +55,7 @@ export default function Classes() {
     setError(null)
     try {
       // sync enrollments on server (create missing enrollments)
-      const backendHost = 'http://localhost:4000'
-      const res = await authFetch(`${backendHost}/api/classes/${c.id}/enrollments/sync`, { method: 'POST' })
+      const res = await authFetch(`/api/classes/${c.id}/enrollments/sync`, { method: 'POST' })
       if (!res.ok) {
         let body = {};
         try { body = await res.json(); } catch (e) { body = { error: await res.text().catch(() => res.statusText) } }
@@ -73,9 +72,9 @@ export default function Classes() {
   async function openCreateModal(c) {
     setError(null)
     try {
-      const cRes = await authFetch('http://localhost:4000/api/courses')
+      const cRes = await authFetch('/api/courses')
       if (cRes.ok) setCourses(await cRes.json())
-      const tRes = await authFetch('http://localhost:4000/api/teachers')
+      const tRes = await authFetch('/api/teachers')
       if (tRes.ok) setTeachers(await tRes.json())
     } catch (err) { /* ignore */ }
     if (c) {
@@ -125,9 +124,9 @@ export default function Classes() {
       delete payload.end_time
       let res
       if (editingId) {
-        res = await authFetch(`http://localhost:4000/api/classes/${editingId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+        res = await authFetch(`/api/classes/${editingId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       } else {
-        res = await authFetch('http://localhost:4000/api/classes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+        res = await authFetch('/api/classes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       }
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || JSON.stringify(data))
@@ -146,9 +145,9 @@ export default function Classes() {
     setError(null)
     try {
       const [cRes, sRes, tRes] = await Promise.all([
-        authFetch(`http://localhost:4000/api/classes/${c.id}`),
-        authFetch(`http://localhost:4000/api/classes/${c.id}/students`),
-        authFetch(`http://localhost:4000/api/classes/${c.id}/teachers`)
+        authFetch(`/api/classes/${c.id}`),
+        authFetch(`/api/classes/${c.id}/students`),
+        authFetch(`/api/classes/${c.id}/teachers`)
       ])
       if (!cRes.ok) throw new Error('Failed to fetch class')
       if (!sRes.ok) throw new Error('Failed to fetch enrolled students')
@@ -167,7 +166,7 @@ export default function Classes() {
     setError(null)
     try {
       // ensure students list loaded for selection
-      const res = await authFetch('http://localhost:4000/api/students')
+      const res = await authFetch('/api/students')
       if (res.ok) {
         const data = await res.json()
         setStudents(data)
@@ -182,7 +181,7 @@ export default function Classes() {
   async function openAddTeacher(c) {
     setError(null)
     try {
-      const res = await authFetch('http://localhost:4000/api/teachers')
+      const res = await authFetch('/api/teachers')
       if (res.ok) {
         const data = await res.json()
         setTeachers(data)
@@ -198,11 +197,11 @@ export default function Classes() {
     setError(null)
     try {
       const payload = selectedStudentId ? { student_id: selectedStudentId } : { student: newStudent }
-      const res = await authFetch(`http://localhost:4000/api/classes/${detailClass.id}/students`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      const res = await authFetch(`/api/classes/${detailClass.id}/students`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || JSON.stringify(data))
       // refresh students list
-      const sRes = await authFetch(`http://localhost:4000/api/classes/${detailClass.id}/students`)
+      const sRes = await authFetch(`/api/classes/${detailClass.id}/students`)
       if (sRes.ok) setClassStudents(await sRes.json())
       setShowAddStudent(false)
     } catch (err) { setError(err.message) }
@@ -211,9 +210,9 @@ export default function Classes() {
   async function removeStudentFromClass(studentId) {
     if (!confirm('Remove student from class?')) return
     try {
-      const res = await authFetch(`http://localhost:4000/api/classes/${detailClass.id}/students/${studentId}`, { method: 'DELETE' })
+      const res = await authFetch(`/api/classes/${detailClass.id}/students/${studentId}`, { method: 'DELETE' })
       if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b.error || 'Failed to remove') }
-      const sRes = await authFetch(`http://localhost:4000/api/classes/${detailClass.id}/students`)
+      const sRes = await authFetch(`/api/classes/${detailClass.id}/students`)
       if (sRes.ok) setClassStudents(await sRes.json())
     } catch (err) { setError(err.message) }
   }
@@ -224,10 +223,10 @@ export default function Classes() {
     try {
       if (!selectedTeacherId) return setError('Please select a teacher')
       const payload = { teacher_id: selectedTeacherId }
-      const res = await authFetch(`http://localhost:4000/api/classes/${detailClass.id}/teachers`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      const res = await authFetch(`/api/classes/${detailClass.id}/teachers`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || JSON.stringify(data))
-      const tRes = await authFetch(`http://localhost:4000/api/classes/${detailClass.id}/teachers`)
+      const tRes = await authFetch(`/api/classes/${detailClass.id}/teachers`)
       if (tRes.ok) setClassTeachers(await tRes.json())
       setShowAddTeacher(false)
     } catch (err) { setError(err.message) }
@@ -236,9 +235,9 @@ export default function Classes() {
   async function removeTeacherFromClass(teacherId) {
     if (!confirm('Remove teacher from class?')) return
     try {
-      const res = await authFetch(`http://localhost:4000/api/classes/${detailClass.id}/teachers/${teacherId}`, { method: 'DELETE' })
+      const res = await authFetch(`/api/classes/${detailClass.id}/teachers/${teacherId}`, { method: 'DELETE' })
       if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b.error || 'Failed to remove') }
-      const tRes = await authFetch(`http://localhost:4000/api/classes/${detailClass.id}/teachers`)
+      const tRes = await authFetch(`/api/classes/${detailClass.id}/teachers`)
       if (tRes.ok) setClassTeachers(await tRes.json())
     } catch (err) { setError(err.message) }
   }
@@ -246,7 +245,7 @@ export default function Classes() {
   async function removeClass(id) {
     if (!confirm('Xác nhận xóa lớp học?')) return
     try {
-      const res = await authFetch(`http://localhost:4000/api/classes/${id}`, { method: 'DELETE' })
+      const res = await authFetch(`/api/classes/${id}`, { method: 'DELETE' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || JSON.stringify(data))
       await load()
@@ -258,7 +257,7 @@ export default function Classes() {
     const newStatus = c.status === 'active' ? 'inactive' : 'active'
     try {
       setLoading(true)
-      const res = await authFetch(`http://localhost:4000/api/classes/${c.id}`, {
+      const res = await authFetch(`/api/classes/${c.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),

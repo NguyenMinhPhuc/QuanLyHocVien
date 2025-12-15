@@ -27,7 +27,7 @@ export default function Courses() {
   async function load() {
     setLoading(true)
     try {
-      const res = await authFetch('http://localhost:4000/api/courses')
+      const res = await authFetch('/api/courses')
       if (!res.ok) throw new Error('Failed to load')
       const data = await res.json()
       setCourses(data)
@@ -72,7 +72,7 @@ export default function Courses() {
   useEffect(() => {
     async function loadTeachers() {
       try {
-        const res = await authFetch('http://localhost:4000/api/teachers')
+        const res = await authFetch('/api/teachers')
         if (!res.ok) return
         const data = await res.json()
         setTeachers(data)
@@ -92,9 +92,9 @@ export default function Courses() {
       const payload = { name: form.name, description: form.description, level: form.level, sessions: form.sessions, status: form.status, tuition_amount: Number(form.tuition_amount || 0), discount_percent: Number(form.discount_percent || 0) }
       let res
       if (editing) {
-        res = await authFetch(`http://localhost:4000/api/courses/${editing.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+        res = await authFetch(`/api/courses/${editing.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       } else {
-        res = await authFetch('http://localhost:4000/api/courses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+        res = await authFetch('/api/courses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       }
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || JSON.stringify(data))
@@ -106,7 +106,7 @@ export default function Courses() {
   async function editCourse(c) {
     setError(null)
     try {
-      const res = await authFetch(`http://localhost:4000/api/courses/${c.id}`)
+      const res = await authFetch(`/api/courses/${c.id}`)
       if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b.error || 'Failed to fetch course') }
       const course = await res.json()
       setEditing(course)
@@ -118,7 +118,7 @@ export default function Courses() {
   async function removeCourse(id) {
     if (!confirm('Xác nhận xóa khóa học?')) return
     try {
-      const res = await authFetch(`http://localhost:4000/api/courses/${id}`, { method: 'DELETE' })
+      const res = await authFetch(`/api/courses/${id}`, { method: 'DELETE' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || JSON.stringify(data))
       await load()
@@ -135,7 +135,7 @@ export default function Courses() {
     setError(null)
     try {
       const payload = { course_id: classForm.course_id, teacher_id: classForm.teacher_id, room: classForm.room, schedule: classForm.schedule, status: classForm.status }
-      const res = await authFetch('http://localhost:4000/api/classes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      const res = await authFetch('/api/classes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || JSON.stringify(data))
       setShowClassModal(false)
@@ -311,7 +311,7 @@ export default function Courses() {
                       <select value={c.status || 'active'} onChange={async (e) => {
                         const newStatus = e.target.value
                         try {
-                          const res = await authFetch(`http://localhost:4000/api/courses/${c.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) })
+                          const res = await authFetch(`/api/courses/${c.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) })
                           const body = await res.json().catch(() => ({}))
                           if (!res.ok) throw new Error(body.error || 'Failed to update status')
                           await load()

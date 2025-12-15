@@ -1,12 +1,19 @@
 {
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
-  "/_document": "pages/_document.js",
-  "/courses": "pages/courses.js",
-  "/teachers": "pages/teachers.js",
   "/class-students/[classId]": "pages/class-students/[classId].js",
   "/classes": "pages/classes.js",
-  "/debts": "pages/debts.js",
+  "/courses": "pages/courses.js",
+  "/darkboard": "pages/darkboard.js",
   "/dashboard": "pages/dashboard.js",
-  "/schedules": "pages/schedules.js"
+  "/debts": "pages/debts.js",
+  "/": "pages/index.js",
+  "/login": "pages/login.js",
+  "/register": "pages/register.js",
+  "/receipts/[receiptId]": "pages/receipts/[receiptId].js",
+  "/schedules": "pages/schedules.js",
+  "/settings": "pages/settings.js",
+  "/settings/receipts": "pages/settings/receipts.js",
+  "/teachers": "pages/teachers.js",
+  "/_document": "pages/_document.js"
 }

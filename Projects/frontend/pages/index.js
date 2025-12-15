@@ -23,7 +23,7 @@ export default function Home() {
   async function load() {
     setLoading(true)
     try {
-      const res = await authFetch('http://localhost:4000/api/students')
+      const res = await authFetch('/api/students')
       if (!res.ok) throw new Error('Failed to load')
       const data = await res.json()
       setStudents(data)
@@ -77,9 +77,9 @@ export default function Home() {
       const payload = { name: form.name, email: form.email, phone: form.phone, dob: form.dob, parents }
       let res
       if (editing) {
-        res = await authFetch(`http://localhost:4000/api/students/${editing.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+        res = await authFetch(`/api/students/${editing.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       } else {
-        res = await authFetch('http://localhost:4000/api/students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+        res = await authFetch('/api/students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       }
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || JSON.stringify(data))
@@ -105,7 +105,7 @@ export default function Home() {
     setError(null)
     try {
       // fetch full student details (includes parents)
-      const res = await authFetch(`http://localhost:4000/api/students/${s.id}`)
+      const res = await authFetch(`/api/students/${s.id}`)
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
         throw new Error(body.error || 'Failed to fetch student details')
@@ -128,7 +128,7 @@ export default function Home() {
   async function removeStudent(id) {
     if (!confirm('Xác nhận xóa sinh viên?')) return
     try {
-      const res = await authFetch(`http://localhost:4000/api/students/${id}`, { method: 'DELETE' })
+      const res = await authFetch(`/api/students/${id}`, { method: 'DELETE' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || JSON.stringify(data))
       await load()
@@ -183,7 +183,7 @@ export default function Home() {
                             if (editing && pInfo && pInfo.id) {
                               if (!confirm('Xác nhận xóa phụ huynh? Tài khoản phụ huynh sẽ bị vô hiệu hóa.')) return;
                               try {
-                                const res = await authFetch(`http://localhost:4000/api/parents/${pInfo.id}`, { method: 'DELETE' });
+                                const res = await authFetch(`/api/parents/${pInfo.id}`, { method: 'DELETE' });
                                 const body = await res.json().catch(() => ({}));
                                 if (!res.ok) throw new Error(body.error || 'Failed to remove parent');
                                 setParents(prev => prev.filter((_, i) => i !== idx));
@@ -271,7 +271,7 @@ export default function Home() {
                       <select value={s.status || 'active'} onChange={async (e) => {
                         const newStatus = e.target.value
                         try {
-                          const res = await authFetch(`http://localhost:4000/api/students/${s.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) })
+                          const res = await authFetch(`/api/students/${s.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) })
                           const body = await res.json().catch(() => ({}))
                           if (!res.ok) throw new Error(body.error || 'Failed to update status')
                           await load()
