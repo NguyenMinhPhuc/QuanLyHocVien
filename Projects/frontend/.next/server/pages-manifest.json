@@ -2,7 +2,11 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/classes": "pages/classes.js",
+  "/courses": "pages/courses.js",
+  "/teachers": "pages/teachers.js",
   "/class-students/[classId]": "pages/class-students/[classId].js",
-  "/courses": "pages/courses.js"
+  "/classes": "pages/classes.js",
+  "/debts": "pages/debts.js",
+  "/dashboard": "pages/dashboard.js",
+  "/schedules": "pages/schedules.js"
 }

@@ -289,3 +289,99 @@ async function deleteStudent(id) {
 }
 
 module.exports = { getAllStudents, getStudentById, createStudent, updateStudent, deleteStudent };
+
+// debt summary: per-student aggregates with search/sort/filter/pagination
+async function getStudentsDebtSummary(options = {}) {
+  const {
+    q, // search query
+    sortField = 'total_outstanding',
+    sortDir = 'DESC',
+    minOutstanding,
+    maxOutstanding,
+    hasDebt, // boolean: true => total_outstanding > 0, false => = 0
+    page = 1,
+    pageSize = 20
+  } = options || {};
+
+  try {
+    const p = await db.getPool();
+
+    // Base aggregated query (no pagination)
+    const baseAgg = `
+      SELECT
+        s.id,
+        s.name,
+        s.phone,
+        ISNULL(SUM(CASE WHEN e.id IS NOT NULL AND (c.course_end_date IS NULL OR c.course_end_date >= CAST(GETDATE() AS date)) THEN 1 ELSE 0 END),0) AS classes_active,
+        ISNULL(SUM(CASE WHEN e.id IS NOT NULL AND c.course_end_date IS NOT NULL AND c.course_end_date < CAST(GETDATE() AS date) THEN 1 ELSE 0 END),0) AS classes_finished,
+        ISNULL(SUM(e.outstanding_balance),0) AS total_outstanding,
+        ISNULL(MAX(paid.total_paid),0) AS total_paid,
+        (SELECT TOP 1 p.name FROM StudentParents sp JOIN Parents p ON sp.parent_id = p.id WHERE sp.student_id = s.id) AS parent_name,
+        (SELECT TOP 1 p.phone FROM StudentParents sp JOIN Parents p ON sp.parent_id = p.id WHERE sp.student_id = s.id) AS parent_phone
+      FROM Students s
+      LEFT JOIN Enrollments e ON e.student_id = s.id
+      LEFT JOIN Classes c ON c.id = e.class_id
+      LEFT JOIN (
+        SELECT ee.student_id, SUM(pa.amount) AS total_paid FROM Payments pa JOIN Enrollments ee ON pa.enrollment_id = ee.id GROUP BY ee.student_id
+      ) paid ON paid.student_id = s.id
+      WHERE s.status IS NULL OR s.status <> 'disabled'
+      GROUP BY s.id, s.name, s.phone
+    `;
+
+    // build filters for outer query (search, outstanding filters)
+    const filters = [];
+    const req = p.request();
+
+    if (q && String(q).trim().length > 0) {
+      const qLike = `%${String(q).trim()}%`;
+      req.input('qLike', qLike);
+      filters.push(`(name LIKE @qLike OR phone LIKE @qLike OR parent_name LIKE @qLike)`);
+    }
+
+    if (typeof minOutstanding !== 'undefined' && minOutstanding !== null && !Number.isNaN(Number(minOutstanding))) {
+      req.input('minOutstanding', Number(minOutstanding));
+      filters.push(`(total_outstanding >= @minOutstanding)`);
+    }
+
+    if (typeof maxOutstanding !== 'undefined' && maxOutstanding !== null && !Number.isNaN(Number(maxOutstanding))) {
+      req.input('maxOutstanding', Number(maxOutstanding));
+      filters.push(`(total_outstanding <= @maxOutstanding)`);
+    }
+
+    if (typeof hasDebt !== 'undefined' && hasDebt !== null) {
+      if (hasDebt === true || String(hasDebt) === 'true') {
+        filters.push(`(total_outstanding > 0)`);
+      } else if (hasDebt === false || String(hasDebt) === 'false') {
+        filters.push(`(total_outstanding = 0)`);
+      }
+    }
+
+    const whereClause = filters.length > 0 ? (`WHERE ` + filters.join(' AND ')) : '';
+
+    // sanitize sortField/sortDir
+    const allowedSort = new Set(['name', 'phone', 'classes_active', 'classes_finished', 'total_outstanding', 'total_paid']);
+    const sf = allowedSort.has(sortField) ? sortField : 'total_outstanding';
+    const sd = String(sortDir).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
+    const pageNum = Math.max(1, Number(page) || 1);
+    const ps = Math.max(1, Number(pageSize) || 20);
+    const offset = (pageNum - 1) * ps;
+
+    // total count query
+    const countSql = `SELECT COUNT(1) AS total_count FROM (${baseAgg}) t ${whereClause};`;
+    const countRes = await req.query(countSql);
+    const total = (countRes && countRes.recordset && countRes.recordset[0] && countRes.recordset[0].total_count) ? Number(countRes.recordset[0].total_count) : 0;
+
+    // paginated rows
+    const rowsSql = `SELECT * FROM (${baseAgg}) t ${whereClause} ORDER BY ${sf} ${sd} OFFSET ${offset} ROWS FETCH NEXT ${ps} ROWS ONLY;`;
+    const rowsRes = await req.query(rowsSql);
+    const rows = rowsRes && rowsRes.recordset ? rowsRes.recordset : [];
+
+    return { rows, total, page: pageNum, pageSize: ps };
+  } catch (err) {
+    console.error('[studentService] getStudentsDebtSummary error', err.message);
+    throw err;
+  }
+}
+
+module.exports.getStudentsDebtSummary = getStudentsDebtSummary;

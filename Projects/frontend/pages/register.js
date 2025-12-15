@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { getToken, saveToken } from '../lib/auth'
+import { t } from '../lib/i18n'
 
 export default function Register() {
   const [username, setUsername] = useState('')
@@ -34,27 +35,27 @@ export default function Register() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h1>Register (Admin only)</h1>
+      <h1>{t('register.title', 'Register (Admin only)')}</h1>
       <form onSubmit={submit}>
         <div>
-          <label>Username</label><br />
+          <label>{t('register.username', 'Username')}</label><br />
           <input value={username} onChange={e => setUsername(e.target.value)} />
         </div>
         <div>
-          <label>Password</label><br />
+          <label>{t('register.password', 'Password')}</label><br />
           <input type="password" value={password} onChange={e => setPassword(e.target.value)} />
         </div>
         <div>
-          <label>Role</label><br />
+          <label>{t('register.role', 'Role')}</label><br />
           <select value={role} onChange={e => setRole(e.target.value)}>
-            <option value="student">student</option>
-            <option value="parent">parent</option>
-            <option value="teacher">teacher</option>
-            <option value="administrator">administrator</option>
+            <option value="student">{t('roles.student', 'Học viên')}</option>
+            <option value="parent">{t('roles.parent', 'Phụ huynh')}</option>
+            <option value="teacher">{t('roles.teacher', 'Giáo viên')}</option>
+            <option value="administrator">{t('roles.admin', 'Quản trị viên')}</option>
           </select>
         </div>
         <div style={{ marginTop: 10 }}>
-          <button type="submit">Register</button>
+          <button type="submit">{t('register.submit', 'Register')}</button>
         </div>
         {error && <div style={{ color: 'red', marginTop: 10 }}>{error}</div>}
       </form>

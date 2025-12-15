@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { authFetch } from '../lib/auth'
+import { t } from '../lib/i18n'
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -13,7 +14,7 @@ export default function Login() {
     e.preventDefault()
     setError(null)
     if (!username.trim() || !password) {
-      setError('Vui lòng nhập tên đăng nhập và mật khẩu')
+      setError(t('login.error.missing', 'Vui lòng nhập tên đăng nhập và mật khẩu'))
       return
     }
     setLoading(true)
@@ -52,18 +53,18 @@ export default function Login() {
 
   return (
     <div style={{ maxWidth: 420, margin: '40px auto', padding: 20, border: '1px solid #eee', borderRadius: 6 }}>
-      <h1 style={{ marginBottom: 12 }}>Đăng nhập</h1>
+      <h1 style={{ marginBottom: 12 }}>{t('login.title', 'Đăng nhập')}</h1>
       <form onSubmit={submit}>
         <div style={{ marginBottom: 10 }}>
-          <label style={{ display: 'block', marginBottom: 6 }}>Tên đăng nhập</label>
+          <label style={{ display: 'block', marginBottom: 6 }}>{t('login.username', 'Tên đăng nhập')}</label>
           <input value={username} onChange={e => setUsername(e.target.value)} style={{ width: '100%', padding: 8, boxSizing: 'border-box' }} />
         </div>
         <div style={{ marginBottom: 10 }}>
-          <label style={{ display: 'block', marginBottom: 6 }}>Mật khẩu</label>
+          <label style={{ display: 'block', marginBottom: 6 }}>{t('login.password', 'Mật khẩu')}</label>
           <input type="password" value={password} onChange={e => setPassword(e.target.value)} style={{ width: '100%', padding: 8, boxSizing: 'border-box' }} />
         </div>
         <div style={{ marginTop: 10 }}>
-          <button type="submit" disabled={loading} style={{ padding: '8px 16px' }}>{loading ? 'Đang xử lý...' : 'Đăng nhập'}</button>
+          <button type="submit" disabled={loading} style={{ padding: '8px 16px' }}>{loading ? t('login.processing', 'Đang xử lý...') : t('login.submit', 'Đăng nhập')}</button>
         </div>
         {error && <div style={{ color: 'red', marginTop: 12 }}>{error}</div>}
       </form>

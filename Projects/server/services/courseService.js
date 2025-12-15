@@ -13,20 +13,22 @@ async function getCourseById(id) {
 }
 
 async function createCourse(payload) {
-  const { name, description, level, sessions, status } = payload;
+  const { name, description, level, sessions, status, tuition_amount, discount_percent } = payload;
   const p = await db.getPool();
   const req = p.request()
     .input('name', name)
     .input('description', description)
     .input('level', level)
     .input('sessions', sessions)
-    .input('status', status || 'active');
+    .input('status', status || 'active')
+    .input('tuition_amount', tuition_amount || 0)
+    .input('discount_percent', discount_percent || 0);
   const result = await req.execute('sp_courses_create');
   return result.recordset[0];
 }
 
 async function updateCourse(id, payload) {
-  const { name, description, level, sessions, status } = payload;
+  const { name, description, level, sessions, status, tuition_amount, discount_percent } = payload;
   const p = await db.getPool();
   const req = p.request()
     .input('id', id)
@@ -34,7 +36,9 @@ async function updateCourse(id, payload) {
     .input('description', description)
     .input('level', level)
     .input('sessions', sessions)
-    .input('status', status);
+    .input('status', status)
+    .input('tuition_amount', tuition_amount)
+    .input('discount_percent', discount_percent);
   const result = await req.execute('sp_courses_update');
   return result.recordset[0];
 }

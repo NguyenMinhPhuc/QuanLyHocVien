@@ -1,6 +1,8 @@
 const classService = require('../services/classService');
 const studentService = require('../services/studentService');
 const teacherService = require('../services/teacherService');
+const enrollmentService = require('../services/enrollmentService');
+const courseService = require('../services/courseService');
 
 async function listClasses(req, res) {
   try {
@@ -113,6 +115,37 @@ async function addStudentToClass(req, res) {
     }
     if (!sid) return res.status(400).json({ error: 'student_id or student payload required' });
     const added = await classService.addStudentToClass(classId, sid);
+    // also create enrollment record so payments/debt are tracked
+    try {
+      // compute outstanding_balance based on course tuition/discount
+      let outstanding = 0;
+      let cls = null;
+      try {
+        cls = await classService.getClassById(classId);
+        if (cls && cls.course_id) {
+          const course = await courseService.getCourseById(cls.course_id);
+          if (course) {
+            const tuition = Number(course.tuition_amount || 0);
+            const discount = Number(course.discount_percent || 0);
+            outstanding = tuition * (1 - (discount / 100));
+          }
+        }
+      } catch (cErr) { console.error('Failed to compute tuition when adding student to class', cErr); }
+
+      const payload = {
+        class_id: classId,
+        student_id: sid,
+        status: 'active',
+        registration_date: new Date(),
+        outstanding_balance: outstanding,
+        assigned_teacher_id: (cls && cls.teacher_id) ? cls.teacher_id : null,
+        notes: 'Created via addStudentToClass'
+      };
+      await enrollmentService.createEnrollment(payload);
+    } catch (e) {
+      console.error('Failed to create enrollment after adding student to class', e);
+    }
+
     res.status(201).json(added);
   } catch (err) {
     console.error(err);
@@ -125,6 +158,14 @@ async function removeStudentFromClass(req, res) {
     const classId = parseInt(req.params.id, 10);
     const studentId = parseInt(req.params.studentId, 10);
     const result = await classService.removeStudentFromClass(classId, studentId);
+    // also remove any enrollment record for this class+student
+    try {
+      const enrollmentSvc = require('../services/enrollmentService');
+      await enrollmentSvc.deleteEnrollmentByClassAndStudent(classId, studentId);
+    } catch (e) {
+      console.error('removeStudentFromClass: failed to delete enrollment', e);
+      // continue; we still return success for class removal
+    }
     res.json(result);
   } catch (err) {
     console.error(err);

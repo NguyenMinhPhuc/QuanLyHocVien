@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { sanitizeNumericInput, formatWithThousands } from '../lib/numberFormat'
 import { authFetch } from '../lib/auth'
 
 export default function Courses() {
@@ -8,7 +9,9 @@ export default function Courses() {
 
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState(null)
-  const [form, setForm] = useState({ name: '', description: '', level: '', sessions: 0, status: 'active' })
+  const [form, setForm] = useState({ name: '', description: '', level: '', sessions: 0, status: 'active', tuition_amount: 0, discount_percent: 0 })
+
+
   const [teachers, setTeachers] = useState([])
   const [showClassModal, setShowClassModal] = useState(false)
   const [classForm, setClassForm] = useState({ course_id: null, teacher_id: null, room: '', schedule: '', status: 'active' })
@@ -80,13 +83,13 @@ export default function Courses() {
     loadTeachers()
   }, [])
 
-  function openNew() { setEditing(null); setForm({ name: '', description: '', level: '', sessions: 0, status: 'active' }); setShowModal(true) }
+  function openNew() { setEditing(null); setForm({ name: '', description: '', level: '', sessions: 0, status: 'active', tuition_amount: 0, discount_percent: 0 }); setShowModal(true) }
 
   async function handleSave(e) {
     e.preventDefault()
     setError(null)
     try {
-      const payload = { name: form.name, description: form.description, level: form.level, sessions: form.sessions, status: form.status }
+      const payload = { name: form.name, description: form.description, level: form.level, sessions: form.sessions, status: form.status, tuition_amount: Number(form.tuition_amount || 0), discount_percent: Number(form.discount_percent || 0) }
       let res
       if (editing) {
         res = await authFetch(`http://localhost:4000/api/courses/${editing.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
@@ -107,7 +110,7 @@ export default function Courses() {
       if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b.error || 'Failed to fetch course') }
       const course = await res.json()
       setEditing(course)
-      setForm({ name: course.name || '', description: course.description || '', level: course.level || '', sessions: course.sessions || 0, status: course.status || 'active' })
+      setForm({ name: course.name || '', description: course.description || '', level: course.level || '', sessions: course.sessions || 0, status: course.status || 'active', tuition_amount: course.tuition_amount || 0, discount_percent: course.discount_percent || 0 })
       setShowModal(true)
     } catch (err) { setError(err.message) }
   }
@@ -169,6 +172,31 @@ export default function Courses() {
                 <div>
                   <label className="block text-sm font-medium mb-1">Sessions</label>
                   <input type="number" value={form.sessions} onChange={e => setForm(f => ({ ...f, sessions: parseInt(e.target.value || '0', 10) }))} className="p-2 border rounded bg-transparent w-full" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Tuition amount</label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={formatWithThousands(form.tuition_amount)}
+                    onChange={e => {
+                      const clean = sanitizeNumericInput(e.target.value)
+                      setForm(f => ({ ...f, tuition_amount: clean }))
+                    }}
+                    className="p-2 border rounded bg-transparent w-full"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Discount %</label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={sanitizeNumericInput(form.discount_percent)}
+                    onChange={e => setForm(f => ({ ...f, discount_percent: sanitizeNumericInput(e.target.value) }))}
+                    className="p-2 border rounded bg-transparent w-full"
+                    placeholder="0"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Status</label>
@@ -266,7 +294,7 @@ export default function Courses() {
 
             <table className="min-w-full table-auto">
               <thead>
-                <tr className="text-left"><th className="p-2"><input type="checkbox" onChange={e => toggleSelectAllOnPage(e.target.checked)} checked={currentPageItems().every(i => selected.includes(i.id)) && currentPageItems().length > 0} /></th><th className="p-2">No.</th><th className="p-2">Name</th><th>Description</th><th>Level</th><th>Sessions</th><th>Status</th><th>Actions</th></tr>
+                <tr className="text-left"><th className="p-2"><input type="checkbox" onChange={e => toggleSelectAllOnPage(e.target.checked)} checked={currentPageItems().every(i => selected.includes(i.id)) && currentPageItems().length > 0} /></th><th className="p-2">No.</th><th className="p-2">Name</th><th>Description</th><th>Level</th><th>Sessions</th><th>Tuition</th><th>Discount %</th><th>Status</th><th>Actions</th></tr>
               </thead>
               <tbody>
                 {currentPageItems().map((c, idx) => (
@@ -277,6 +305,8 @@ export default function Courses() {
                     <td>{c.description}</td>
                     <td>{c.level}</td>
                     <td>{c.sessions}</td>
+                    <td className="p-2">{c.tuition_amount != null ? Number(c.tuition_amount).toLocaleString() : '-'}</td>
+                    <td className="p-2">{c.discount_percent != null ? Number(c.discount_percent) : '-'}</td>
                     <td className="p-2">
                       <select value={c.status || 'active'} onChange={async (e) => {
                         const newStatus = e.target.value

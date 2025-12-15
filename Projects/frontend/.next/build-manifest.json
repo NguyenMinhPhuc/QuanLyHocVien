@@ -32,10 +32,25 @@
       "static/chunks/main.js",
       "static/chunks/pages/classes.js"
     ],
-    "/courses": [
+    "/dashboard": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/courses.js"
+      "static/chunks/pages/dashboard.js"
+    ],
+    "/debts": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/debts.js"
+    ],
+    "/schedules": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/schedules.js"
+    ],
+    "/teachers": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/teachers.js"
     ]
   },
   "ampFirstPages": []

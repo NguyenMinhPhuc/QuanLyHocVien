@@ -1,5 +1,6 @@
 const enrollmentService = require('../services/enrollmentService');
 const classService = require('../services/classService');
+const courseService = require('../services/courseService');
 
 // POST /api/enrollments/:id/hold
 async function holdEnrollment(req, res) {
@@ -57,17 +58,45 @@ async function listByClass(req, res) {
     try {
       const classStudents = await classService.getStudentsByClass(classId);
       const enrolledStudentIds = new Set((rows || []).map(r => r.student_id));
+      // load class once to get default teacher for auto-created enrollments
+      let classInfo = null;
+      try { classInfo = await classService.getClassById(classId); } catch (e) { console.error('failed to load class for auto-create', e); }
       for (const cs of (classStudents || [])) {
         const sid = cs.student_id || cs.id || cs.studentId;
         if (!sid) continue;
         if (!enrolledStudentIds.has(sid)) {
           // create enrollment using enrolled_at if available
+          // compute outstanding_balance based on course tuition and discount
+          let outstanding = 0;
+          try {
+            const cls = await classService.getClassById(classId);
+            if (cls && cls.course_id) {
+              const course = await courseService.getCourseById(cls.course_id);
+              if (course) {
+                const tuition = Number(course.tuition_amount || 0);
+                const discount = Number(course.discount_percent || 0);
+                const finalTuition = tuition * (1 - (discount / 100));
+                outstanding = Number(finalTuition || 0);
+              }
+            }
+          } catch (cErr) {
+            console.error('Failed to compute tuition for enrollment auto-create', cErr);
+          }
+
+          // normalize registration_date to Date or null
+          let regDate = null;
+          const rawDate = cs.enrolled_at || cs.registration_date || null;
+          if (rawDate) {
+            regDate = new Date(rawDate);
+            if (isNaN(regDate.getTime())) regDate = null;
+          }
           const payload = {
             class_id: classId,
             student_id: sid,
-            registration_date: cs.enrolled_at || cs.registration_date || null,
+            registration_date: regDate,
             status: cs.status || 'active',
-            outstanding_balance: 0,
+            outstanding_balance: outstanding,
+            assigned_teacher_id: (classInfo && classInfo.teacher_id) ? classInfo.teacher_id : null,
             notes: 'Auto-created from ClassStudents'
           };
           try {
@@ -109,6 +138,38 @@ async function create(req, res) {
   try {
     const classId = parseInt(req.params.classId, 10);
     const payload = { ...req.body, class_id: classId };
+    // if outstanding_balance not provided, compute from course tuition/discount
+    if (payload.outstanding_balance == null) {
+      try {
+        const cls = await classService.getClassById(classId);
+        if (cls && cls.course_id) {
+          const course = await courseService.getCourseById(cls.course_id);
+          if (course) {
+            const tuition = Number(course.tuition_amount || 0);
+            const discount = Number(course.discount_percent || 0);
+            payload.outstanding_balance = tuition * (1 - (discount / 100));
+          }
+        }
+      } catch (cErr) {
+        console.error('Failed to compute tuition for enrollment create', cErr);
+      }
+    }
+    // ensure registration_date is set (use Date object so mssql infers datetime)
+    if (payload.registration_date == null) {
+      payload.registration_date = new Date();
+    } else if (typeof payload.registration_date === 'string' && payload.registration_date.trim() !== '') {
+      // convert string dates to Date objects
+      payload.registration_date = new Date(payload.registration_date);
+    }
+    // default assigned_teacher_id from class main teacher if not provided
+    if (!payload.assigned_teacher_id) {
+      try {
+        const cls = await classService.getClassById(classId);
+        if (cls && cls.teacher_id) payload.assigned_teacher_id = cls.teacher_id;
+      } catch (e) {
+        console.error('Failed to load class for assigned teacher default', e);
+      }
+    }
     const created = await enrollmentService.createEnrollment(payload);
     res.status(201).json(created);
   } catch (err) {
@@ -120,7 +181,17 @@ async function create(req, res) {
 async function update(req, res) {
   try {
     const id = parseInt(req.params.id, 10);
-    const payload = req.body;
+    const payload = req.body || {};
+    // normalize registration_date: empty string -> null, string -> Date
+    if (Object.prototype.hasOwnProperty.call(payload, 'registration_date')) {
+      if (payload.registration_date == null || String(payload.registration_date).trim() === '') {
+        payload.registration_date = null;
+      } else if (typeof payload.registration_date === 'string') {
+        const d = new Date(payload.registration_date);
+        if (!isNaN(d.getTime())) payload.registration_date = d;
+        else payload.registration_date = null;
+      }
+    }
     const updated = await enrollmentService.updateEnrollment(id, payload);
     res.json(updated);
   } catch (err) {
@@ -189,8 +260,14 @@ async function addPayment(req, res) {
     const id = parseInt(req.params.id, 10);
     const payload = req.body;
     if (!payload.amount) return res.status(400).json({ error: 'amount required' });
-    const payment = await enrollmentService.addPayment(id, payload);
-    res.status(201).json(payment);
+    // validate payment method: allow only 'cash' or 'transfer'
+    const allowedMethods = ['cash', 'transfer'];
+    const method = (payload.method || '').toString().toLowerCase();
+    if (!method || !allowedMethods.includes(method)) return res.status(400).json({ error: "method required: 'cash' or 'transfer'" });
+    payload.method = method;
+    const result = await enrollmentService.addPayment(id, payload);
+    // result: { payment, receipt }
+    res.status(201).json(result);
   } catch (err) {
     console.error('enrollments.addPayment error', err);
     res.status(500).json({ error: err.message || 'Database error' });
@@ -221,16 +298,27 @@ async function syncEnrollments(req, res) {
     // get class students
     const classStudents = await classService.getStudentsByClass(classId);
     console.log('[syncEnrollments] classStudents', { count: Array.isArray(classStudents) ? classStudents.length : 0 });
+    // load class once to get default teacher for sync-created enrollments
+    let classInfo2 = null;
+    try { classInfo2 = await classService.getClassById(classId); } catch (e) { console.error('failed to load class for sync', e); }
     for (const cs of (classStudents || [])) {
       const sid = cs.student_id || cs.id || cs.studentId;
       if (!sid) continue;
       if (!enrolledStudentIds.has(sid)) {
+        // normalize registration_date to Date or null for sync-created enrollments
+        let regDate2 = null;
+        const rawDate2 = cs.enrolled_at || cs.registration_date || null;
+        if (rawDate2) {
+          regDate2 = new Date(rawDate2);
+          if (isNaN(regDate2.getTime())) regDate2 = null;
+        }
         const payload = {
           class_id: classId,
           student_id: sid,
-          registration_date: cs.enrolled_at || cs.registration_date || null,
+          registration_date: regDate2,
           status: cs.status || 'active',
           outstanding_balance: 0,
+          assigned_teacher_id: (classInfo2 && classInfo2.teacher_id) ? classInfo2.teacher_id : null,
           notes: 'Auto-created via sync'
         };
         try {
@@ -248,7 +336,10 @@ async function syncEnrollments(req, res) {
         const existing = rows.find(r => Number(r.student_id) === Number(sid));
         if (existing) {
           const updatePayload = {};
-          if (cs.enrolled_at && (!existing.registration_date || existing.registration_date !== cs.enrolled_at)) updatePayload.registration_date = cs.enrolled_at;
+          if (cs.enrolled_at) {
+            const parsed = new Date(cs.enrolled_at);
+            if (!existing.registration_date || new Date(existing.registration_date).getTime() !== parsed.getTime()) updatePayload.registration_date = parsed;
+          }
           if (cs.status && existing.status !== cs.status) updatePayload.status = cs.status;
           if (Object.keys(updatePayload).length) {
             try {
