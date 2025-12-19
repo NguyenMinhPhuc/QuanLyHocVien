@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { authFetch } from '../lib/auth'
+import { FiEdit, FiTrash2, FiUserPlus } from 'react-icons/fi'
+import { t } from '../lib/i18n'
 
 export default function Home() {
   const [students, setStudents] = useState([])
@@ -138,9 +140,11 @@ export default function Home() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-semibold">Students</h1>
+        <h1 className="text-2xl font-semibold">{t('students.title', 'Học viên')}</h1>
         <div>
-          <button onClick={openNewModal} className="px-3 py-1 bg-blue-600 text-white rounded">Add student</button>
+          <button onClick={openNewModal} title={t('students.actions.add', 'Thêm học viên')} className="p-2 rounded bg-blue-600 text-white hover:opacity-90">
+            <FiUserPlus />
+          </button>
         </div>
       </div>
 
@@ -154,34 +158,34 @@ export default function Home() {
             <h2 className="text-lg font-semibold mb-3">{editing ? 'Edit student' : 'Add student'}</h2>
             <form onSubmit={handleSave} className="grid grid-cols-1 gap-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required placeholder="Student name" className="p-2 border rounded bg-transparent" />
-                <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Student email" className="p-2 border rounded bg-transparent" />
-                <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="Student phone" className="p-2 border rounded bg-transparent" />
-                <input type="date" value={form.dob} onChange={e => setForm(f => ({ ...f, dob: e.target.value }))} className="p-2 border rounded bg-transparent" />
+                <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required placeholder="Student name" className="p-2 border rounded bg-transparent dark:bg-transparent dark:text-slate-100 dark:border-slate-600" />
+                <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Student email" className="p-2 border rounded bg-transparent dark:bg-transparent dark:text-slate-100 dark:border-slate-600" />
+                <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="Student phone" className="p-2 border rounded bg-transparent dark:bg-transparent dark:text-slate-100 dark:border-slate-600" />
+                <input type="date" value={form.dob} onChange={e => setForm(f => ({ ...f, dob: e.target.value }))} className="p-2 border rounded bg-transparent dark:bg-transparent dark:text-slate-100 dark:border-slate-600" />
               </div>
 
               <div className="mt-4">
-                <h3 className="font-medium">Parents / Guardians</h3>
+                <h3 className="font-medium">{t('students.parents.title', 'Phụ huynh / Người giám hộ')}</h3>
                 <div className="space-y-3 mt-2">
                   {parents.map((pInfo, idx) => (
                     <div key={idx} className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
-                      <input value={pInfo.name} onChange={e => setParents(prev => { const copy = [...prev]; copy[idx] = { ...copy[idx], name: e.target.value }; return copy })} placeholder="Parent name" className="p-2 border rounded bg-transparent" />
-                      <input value={pInfo.email} onChange={e => setParents(prev => { const copy = [...prev]; copy[idx] = { ...copy[idx], email: e.target.value }; return copy })} placeholder="Parent email" className="p-2 border rounded bg-transparent" />
-                      <input value={pInfo.phone} onChange={e => setParents(prev => { const copy = [...prev]; copy[idx] = { ...copy[idx], phone: e.target.value }; return copy })} placeholder="Parent phone" className="p-2 border rounded bg-transparent" />
+                      <input value={pInfo.name} onChange={e => setParents(prev => { const copy = [...prev]; copy[idx] = { ...copy[idx], name: e.target.value }; return copy })} placeholder="Parent name" className="p-2 border rounded bg-transparent dark:bg-transparent dark:text-slate-100 dark:border-slate-600" />
+                      <input value={pInfo.email} onChange={e => setParents(prev => { const copy = [...prev]; copy[idx] = { ...copy[idx], email: e.target.value }; return copy })} placeholder="Parent email" className="p-2 border rounded bg-transparent dark:bg-transparent dark:text-slate-100 dark:border-slate-600" />
+                      <input value={pInfo.phone} onChange={e => setParents(prev => { const copy = [...prev]; copy[idx] = { ...copy[idx], phone: e.target.value }; return copy })} placeholder="Parent phone" className="p-2 border rounded bg-transparent dark:bg-transparent dark:text-slate-100 dark:border-slate-600" />
                       <div className="flex gap-2 items-center min-w-0">
-                        <select value={pInfo.relationship || ''} onChange={e => setParents(prev => { const copy = [...prev]; copy[idx] = { ...copy[idx], relationship: e.target.value }; return copy })} className="p-2 border rounded bg-transparent">
-                          <option value="">Relationship</option>
-                          <option value="father">Father</option>
-                          <option value="mother">Mother</option>
-                          <option value="guardian">Guardian</option>
-                          <option value="other">Other</option>
+                        <select value={pInfo.relationship || ''} onChange={e => setParents(prev => { const copy = [...prev]; copy[idx] = { ...copy[idx], relationship: e.target.value }; return copy })} className="p-2 border rounded bg-transparent dark:bg-transparent dark:text-slate-100 dark:border-slate-600">
+                          <option value="">{t('students.parents.relationship', 'Quan hệ')}</option>
+                          <option value="father">{t('students.parents.father', 'Cha')}</option>
+                          <option value="mother">{t('students.parents.mother', 'Mẹ')}</option>
+                          <option value="guardian">{t('students.parents.guardian', 'Người giám hộ')}</option>
+                          <option value="other">{t('students.parents.other', 'Khác')}</option>
                         </select>
                         <button
                           type="button"
                           onClick={async () => {
                             // if this parent has an id (existing in DB) and we're editing, call API to disable
                             if (editing && pInfo && pInfo.id) {
-                              if (!confirm('Xác nhận xóa phụ huynh? Tài khoản phụ huynh sẽ bị vô hiệu hóa.')) return;
+                              if (!confirm(t('students.parents.confirm_delete', 'Xác nhận xóa phụ huynh? Tài khoản phụ huynh sẽ bị vô hiệu hóa.'))) return;
                               try {
                                 const res = await authFetch(`/api/parents/${pInfo.id}`, { method: 'DELETE' });
                                 const body = await res.json().catch(() => ({}));
@@ -207,14 +211,16 @@ export default function Home() {
                     </div>
                   ))}
                   <div>
-                    <button type="button" onClick={() => setParents(prev => ([...prev, { name: '', email: '', phone: '' }]))} className="px-3 py-1 bg-blue-600 text-white rounded">Add parent</button>
+                    <button type="button" onClick={() => setParents(prev => ([...prev, { name: '', email: '', phone: '' }]))} title={t('students.parents.add', 'Thêm phụ huynh')} className="p-2 rounded bg-blue-600 text-white hover:opacity-90">
+                      <FiUserPlus />
+                    </button>
                   </div>
                 </div>
               </div>
 
               <div className="flex justify-end gap-2 mt-4">
-                <button type="button" onClick={() => setShowModal(false)} className="px-3 py-2 border rounded">Cancel</button>
-                <button type="submit" className="px-3 py-2 bg-green-600 text-white rounded">{editing ? 'Update' : 'Create'}</button>
+                <button type="button" onClick={() => setShowModal(false)} className="px-3 py-2 border rounded">{t('actions.cancel', 'Hủy')}</button>
+                <button type="submit" className="px-3 py-2 bg-green-600 text-white rounded">{editing ? t('actions.update', 'Cập nhật') : t('actions.create', 'Tạo')}</button>
               </div>
             </form>
           </div>
@@ -226,26 +232,29 @@ export default function Home() {
           <div>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-3">
               <div className="flex items-center gap-2">
-                <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search name/email/phone" className="p-2 border rounded w-64" />
-                <select value={sortKey} onChange={e => setSortKey(e.target.value)} className="p-2 border rounded">
+                <div className="relative w-64">
+                  <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('students.search.placeholder', 'Tìm theo tên/email/sđt')} className="p-2 pr-8 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
+                  {query && <button onClick={() => setQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700">×</button>}
+                </div>
+                <select value={sortKey} onChange={e => setSortKey(e.target.value)} className="p-2 border rounded bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600">
                   <option value="name">Sort by Name</option>
                   <option value="email">Sort by Email</option>
                   <option value="phone">Sort by Phone</option>
                 </select>
-                <select value={sortDir} onChange={e => setSortDir(e.target.value)} className="p-2 border rounded">
+                <select value={sortDir} onChange={e => setSortDir(e.target.value)} className="p-2 border rounded bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600">
                   <option value="asc">Asc</option>
                   <option value="desc">Desc</option>
                 </select>
-                <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="p-2 border rounded">
-                  <option value="">All statuses</option>
-                  <option value="active">active</option>
-                  <option value="inactive">inactive</option>
-                  <option value="disabled">disabled</option>
+                <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="p-2 border rounded bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600">
+                  <option value="">{t('students.filter.all', 'Tất cả trạng thái')}</option>
+                  <option value="active">{t('students.status.active', 'Hoạt động')}</option>
+                  <option value="inactive">{t('students.status.inactive', 'Không hoạt động')}</option>
+                  <option value="disabled">{t('students.status.disabled', 'Vô hiệu')}</option>
                 </select>
               </div>
               <div className="flex items-center gap-2">
                 <label className="text-sm">Rows:</label>
-                <select value={pageSize} onChange={e => setPageSize(parseInt(e.target.value, 10))} className="p-2 border rounded">
+                <select value={pageSize} onChange={e => setPageSize(parseInt(e.target.value, 10))} className="p-2 border rounded bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600">
                   <option value="5">5</option>
                   <option value="10">10</option>
                   <option value="25">25</option>
@@ -256,7 +265,7 @@ export default function Home() {
 
             <table className="min-w-full table-auto">
               <thead>
-                <tr className="text-left"><th className="p-2"><input type="checkbox" onChange={e => toggleSelectAllOnPage(e.target.checked)} checked={currentPageItems().every(i => selected.includes(i.id)) && currentPageItems().length > 0} /></th><th className="p-2">No.</th><th className="p-2">Name</th><th>Email</th><th>Phone</th><th>DOB</th><th>Status</th><th>Actions</th></tr>
+                <tr className="text-left"><th className="p-2"><input type="checkbox" onChange={e => toggleSelectAllOnPage(e.target.checked)} checked={currentPageItems().every(i => selected.includes(i.id)) && currentPageItems().length > 0} /></th><th className="p-2">{t('students.table.no', 'STT')}</th><th className="p-2">{t('students.table.name', 'Họ tên')}</th><th>{t('students.table.email', 'Email')}</th><th>{t('students.table.phone', 'SĐT')}</th><th>{t('students.table.dob', 'Ngày sinh')}</th><th>{t('students.table.status', 'Trạng thái')}</th><th>{t('students.table.actions', 'Hành động')}</th></tr>
               </thead>
               <tbody>
                 {currentPageItems().map((s, idx) => (
@@ -276,15 +285,19 @@ export default function Home() {
                           if (!res.ok) throw new Error(body.error || 'Failed to update status')
                           await load()
                         } catch (err) { setError(err.message) }
-                      }} className="p-1 border rounded bg-transparent">
+                      }} className="p-1 border rounded bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600">
                         <option value="active">active</option>
                         <option value="inactive">inactive</option>
                         <option value="disabled">disabled</option>
                       </select>
                     </td>
-                    <td className="p-2">
-                      <button onClick={() => editStudent(s)} className="mr-2 px-2 py-1 bg-yellow-400 rounded">Edit</button>
-                      <button onClick={() => removeStudent(s.id)} className="px-2 py-1 bg-red-500 text-white rounded">Delete</button>
+                    <td className="p-2 flex gap-2">
+                      <button onClick={() => editStudent(s)} title="Edit" className="p-2 rounded bg-yellow-400 hover:opacity-90">
+                        <FiEdit />
+                      </button>
+                      <button onClick={() => removeStudent(s.id)} title="Delete" className="p-2 rounded bg-red-500 text-white hover:opacity-90">
+                        <FiTrash2 />
+                      </button>
                     </td>
                   </tr>
                 ))}

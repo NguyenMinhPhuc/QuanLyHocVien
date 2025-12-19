@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Sidebar from './Sidebar'
 import Header from './Header'
+import Footer from './Footer'
 import { authFetch } from '../lib/auth'
 
 export default function Layout({ children }) {
@@ -39,9 +40,10 @@ export default function Layout({ children }) {
       <Sidebar collapsed={collapsed} user={user} />
       <div className="flex-1 flex flex-col">
         <Header onToggleSidebar={() => setCollapsed(s => !s)} collapsed={collapsed} user={user} theme={theme} onToggleTheme={toggleTheme} />
-        <main className="p-6 overflow-auto">
+        <main className="flex-1 p-6 overflow-auto">
           {children}
         </main>
+        <Footer />
       </div>
     </div>
   )

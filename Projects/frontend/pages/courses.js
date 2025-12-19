@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import { sanitizeNumericInput, formatWithThousands } from '../lib/numberFormat'
+import { FiCheckCircle, FiSlash, FiAlertTriangle, FiEdit, FiPlusSquare, FiTrash2 } from 'react-icons/fi'
+import { sanitizeNumericInput } from '../lib/numberFormat'
 import { authFetch } from '../lib/auth'
+import { t } from '../lib/i18n'
 
 export default function Courses() {
   const [courses, setCourses] = useState([])
@@ -146,9 +148,9 @@ export default function Courses() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-semibold">Courses</h1>
+        <h1 className="text-2xl font-semibold">{t('courses.title', 'Khóa học')}</h1>
         <div>
-          <button onClick={openNew} className="px-3 py-1 bg-blue-600 text-white rounded">Add course</button>
+          <button onClick={openNew} className="px-3 py-1 bg-blue-600 text-white rounded">{t('courses.add', 'Thêm khóa học')}</button>
         </div>
       </div>
 
@@ -158,62 +160,62 @@ export default function Courses() {
         <div className="fixed inset-0 z-40 flex items-center justify-center">
           <div className="absolute inset-0 bg-black opacity-40" onClick={() => setShowModal(false)}></div>
           <div className="relative bg-white dark:bg-slate-800 rounded-lg p-6 w-full max-w-2xl z-50">
-            <h2 className="text-lg font-semibold mb-3">{editing ? 'Edit course' : 'Add course'}</h2>
+            <h2 className="text-lg font-semibold mb-3">{editing ? t('courses.edit_title', 'Sửa khóa học') : t('courses.add_title', 'Thêm khóa học')}</h2>
             <form onSubmit={handleSave} className="grid grid-cols-1 gap-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Course name</label>
-                  <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required className="p-2 border rounded bg-transparent w-full" />
+                  <label className="block text-sm font-medium mb-1">{t('courses.field.name', 'Tên khóa học')}</label>
+                  <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required className="p-2 border rounded bg-transparent dark:bg-transparent dark:text-slate-100 dark:border-slate-600 w-full" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Level</label>
-                  <input value={form.level} onChange={e => setForm(f => ({ ...f, level: e.target.value }))} className="p-2 border rounded bg-transparent w-full" />
+                  <label className="block text-sm font-medium mb-1">{t('courses.field.level', 'Trình độ')}</label>
+                  <input value={form.level} onChange={e => setForm(f => ({ ...f, level: e.target.value }))} className="p-2 border rounded bg-transparent dark:bg-transparent dark:text-slate-100 dark:border-slate-600 w-full" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Sessions</label>
-                  <input type="number" value={form.sessions} onChange={e => setForm(f => ({ ...f, sessions: parseInt(e.target.value || '0', 10) }))} className="p-2 border rounded bg-transparent w-full" />
+                  <label className="block text-sm font-medium mb-1">{t('courses.field.sessions', 'Số buổi')}</label>
+                  <input type="number" value={form.sessions} onChange={e => setForm(f => ({ ...f, sessions: parseInt(e.target.value || '0', 10) }))} className="p-2 border rounded bg-transparent dark:bg-transparent dark:text-slate-100 dark:border-slate-600 w-full" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Tuition amount</label>
+                  <label className="block text-sm font-medium mb-1">{t('courses.field.tuition', 'Học phí')}</label>
                   <input
                     type="text"
                     inputMode="decimal"
-                    value={formatWithThousands(form.tuition_amount)}
+                    value={form.tuition_amount}
                     onChange={e => {
                       const clean = sanitizeNumericInput(e.target.value)
                       setForm(f => ({ ...f, tuition_amount: clean }))
                     }}
-                    className="p-2 border rounded bg-transparent w-full"
+                    className="p-2 border rounded bg-transparent dark:bg-transparent dark:text-slate-100 dark:border-slate-600 w-full"
                     placeholder="0"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Discount %</label>
+                  <label className="block text-sm font-medium mb-1">{t('courses.field.discount', 'Giảm giá %')}</label>
                   <input
                     type="text"
                     inputMode="decimal"
                     value={sanitizeNumericInput(form.discount_percent)}
                     onChange={e => setForm(f => ({ ...f, discount_percent: sanitizeNumericInput(e.target.value) }))}
-                    className="p-2 border rounded bg-transparent w-full"
+                    className="p-2 border rounded bg-transparent dark:bg-transparent dark:text-slate-100 dark:border-slate-600 w-full"
                     placeholder="0"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Status</label>
-                  <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} className="p-2 border rounded bg-transparent w-full">
+                  <label className="block text-sm font-medium mb-1">{t('courses.field.status', 'Trạng thái')}</label>
+                  <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} className="p-2 border rounded bg-transparent dark:bg-transparent dark:text-slate-100 dark:border-slate-600 w-full">
                     <option value="active">active</option>
                     <option value="inactive">inactive</option>
                   </select>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Description</label>
-                <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="p-2 border rounded bg-transparent w-full" />
+                <label className="block text-sm font-medium mb-1">{t('courses.field.description', 'Mô tả')}</label>
+                <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="p-2 border rounded bg-transparent dark:bg-transparent dark:text-slate-100 dark:border-slate-600 w-full" />
               </div>
 
               <div className="flex justify-end gap-2 mt-4">
-                <button type="button" onClick={() => setShowModal(false)} className="px-3 py-2 border rounded">Cancel</button>
-                <button type="submit" className="px-3 py-2 bg-green-600 text-white rounded">{editing ? 'Update' : 'Create'}</button>
+                <button type="button" onClick={() => setShowModal(false)} className="px-3 py-2 border rounded">{t('actions.cancel', 'Hủy')}</button>
+                <button type="submit" className="px-3 py-2 bg-green-600 text-white rounded">{editing ? t('actions.update', 'Cập nhật') : t('actions.create', 'Tạo')}</button>
               </div>
             </form>
           </div>
@@ -224,26 +226,26 @@ export default function Courses() {
         <div className="fixed inset-0 z-40 flex items-center justify-center">
           <div className="absolute inset-0 bg-black opacity-40" onClick={() => setShowClassModal(false)}></div>
           <div className="relative bg-white dark:bg-slate-800 rounded-lg p-6 w-full max-w-2xl z-50">
-            <h2 className="text-lg font-semibold mb-3">Create Class for Course</h2>
+            <h2 className="text-lg font-semibold mb-3">{t('classes.create_for_course', 'Tạo lớp cho khóa học')}</h2>
             <form onSubmit={handleCreateClass} className="grid grid-cols-1 gap-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Teacher</label>
+                  <label className="block text-sm font-medium mb-1">{t('classes.field.teacher', 'Giáo viên')}</label>
                   <select value={classForm.teacher_id || ''} onChange={e => setClassForm(f => ({ ...f, teacher_id: e.target.value }))} className="p-2 border rounded bg-transparent w-full">
                     <option value="">-- select teacher --</option>
                     {teachers.map(t => (<option key={t.id} value={t.id}>{t.name || t.fullname || t.email}</option>))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Room</label>
+                  <label className="block text-sm font-medium mb-1">{t('classes.field.room', 'Phòng')}</label>
                   <input value={classForm.room} onChange={e => setClassForm(f => ({ ...f, room: e.target.value }))} className="p-2 border rounded bg-transparent w-full" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Schedule</label>
+                  <label className="block text-sm font-medium mb-1">{t('classes.field.schedule', 'Lịch')}</label>
                   <input value={classForm.schedule} onChange={e => setClassForm(f => ({ ...f, schedule: e.target.value }))} placeholder="e.g. Mon/Wed 18:00-20:00" className="p-2 border rounded bg-transparent w-full" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Status</label>
+                  <label className="block text-sm font-medium mb-1">{t('classes.field.status', 'Trạng thái')}</label>
                   <select value={classForm.status} onChange={e => setClassForm(f => ({ ...f, status: e.target.value }))} className="p-2 border rounded bg-transparent w-full">
                     <option value="active">active</option>
                     <option value="inactive">inactive</option>
@@ -252,8 +254,8 @@ export default function Courses() {
               </div>
 
               <div className="flex justify-end gap-2 mt-4">
-                <button type="button" onClick={() => setShowClassModal(false)} className="px-3 py-2 border rounded">Cancel</button>
-                <button type="submit" className="px-3 py-2 bg-green-600 text-white rounded">Create</button>
+                <button type="button" onClick={() => setShowClassModal(false)} className="px-3 py-2 border rounded">{t('actions.cancel', 'Hủy')}</button>
+                <button type="submit" className="px-3 py-2 bg-green-600 text-white rounded">{t('actions.create', 'Tạo')}</button>
               </div>
             </form>
           </div>
@@ -265,24 +267,27 @@ export default function Courses() {
           <div>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-3">
               <div className="flex items-center gap-2">
-                <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search name/description" className="p-2 border rounded w-64" />
-                <select value={sortKey} onChange={e => setSortKey(e.target.value)} className="p-2 border rounded">
-                  <option value="name">Sort by Name</option>
-                  <option value="level">Sort by Level</option>
+                <div className="relative w-64">
+                  <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('courses.search.placeholder', 'Tìm kiếm tên/mô tả')} className="p-2 pr-8 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
+                  {query && <button onClick={() => setQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700">×</button>}
+                </div>
+                <select value={sortKey} onChange={e => setSortKey(e.target.value)} className="p-2 border rounded bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600">
+                  <option value="name">{t('courses.sort.name', 'Sắp theo tên')}</option>
+                  <option value="level">{t('courses.sort.level', 'Sắp theo trình độ')}</option>
                 </select>
-                <select value={sortDir} onChange={e => setSortDir(e.target.value)} className="p-2 border rounded">
-                  <option value="asc">Asc</option>
-                  <option value="desc">Desc</option>
+                <select value={sortDir} onChange={e => setSortDir(e.target.value)} className="p-2 border rounded bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600">
+                  <option value="asc">{t('sort.asc', 'Tăng dần')}</option>
+                  <option value="desc">{t('sort.desc', 'Giảm dần')}</option>
                 </select>
-                <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="p-2 border rounded">
-                  <option value="">All statuses</option>
-                  <option value="active">active</option>
-                  <option value="inactive">inactive</option>
-                  <option value="disabled">disabled</option>
+                <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="p-2 border rounded bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600">
+                  <option value="">{t('courses.filter.all', 'Tất cả trạng thái')}</option>
+                  <option value="active">{t('status.active', 'Hoạt động')}</option>
+                  <option value="inactive">{t('status.inactive', 'Không hoạt động')}</option>
+                  <option value="disabled">{t('status.disabled', 'Vô hiệu')}</option>
                 </select>
               </div>
               <div className="flex items-center gap-2">
-                <label className="text-sm">Rows:</label>
+                <label className="text-sm">{t('courses.rows', 'Số hàng:')}</label>
                 <select value={pageSize} onChange={e => setPageSize(parseInt(e.target.value, 10))} className="p-2 border rounded">
                   <option value="5">5</option>
                   <option value="10">10</option>
@@ -294,7 +299,18 @@ export default function Courses() {
 
             <table className="min-w-full table-auto">
               <thead>
-                <tr className="text-left"><th className="p-2"><input type="checkbox" onChange={e => toggleSelectAllOnPage(e.target.checked)} checked={currentPageItems().every(i => selected.includes(i.id)) && currentPageItems().length > 0} /></th><th className="p-2">No.</th><th className="p-2">Name</th><th>Description</th><th>Level</th><th>Sessions</th><th>Tuition</th><th>Discount %</th><th>Status</th><th>Actions</th></tr>
+                <tr className="text-left">
+                  <th className="p-2"><input type="checkbox" onChange={e => toggleSelectAllOnPage(e.target.checked)} checked={currentPageItems().every(i => selected.includes(i.id)) && currentPageItems().length > 0} /></th>
+                  <th className="p-2">{t('courses.table.no', 'STT')}</th>
+                  <th className="p-2">{t('courses.table.name', 'Tên')}</th>
+                  <th>{t('courses.table.description', 'Mô tả')}</th>
+                  <th>{t('courses.table.level', 'Trình độ')}</th>
+                  <th>{t('courses.table.sessions', 'Số buổi')}</th>
+                  <th>{t('courses.table.tuition', 'Học phí')}</th>
+                  <th>{t('courses.table.discount', 'Giảm %')}</th>
+                  <th>{t('courses.table.status', 'Trạng thái')}</th>
+                  <th>{t('courses.table.actions', 'Hành động')}</th>
+                </tr>
               </thead>
               <tbody>
                 {currentPageItems().map((c, idx) => (
@@ -308,24 +324,33 @@ export default function Courses() {
                     <td className="p-2">{c.tuition_amount != null ? Number(c.tuition_amount).toLocaleString() : '-'}</td>
                     <td className="p-2">{c.discount_percent != null ? Number(c.discount_percent) : '-'}</td>
                     <td className="p-2">
-                      <select value={c.status || 'active'} onChange={async (e) => {
-                        const newStatus = e.target.value
-                        try {
-                          const res = await authFetch(`/api/courses/${c.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) })
-                          const body = await res.json().catch(() => ({}))
-                          if (!res.ok) throw new Error(body.error || 'Failed to update status')
-                          await load()
-                        } catch (err) { setError(err.message) }
-                      }} className="p-1 border rounded bg-transparent">
-                        <option value="active">active</option>
-                        <option value="inactive">inactive</option>
-                        <option value="disabled">disabled</option>
-                      </select>
+                      <button
+                        title={c.status || 'active'}
+                        onClick={async () => {
+                          const current = c.status || 'active'
+                          const newStatus = current === 'active' ? 'inactive' : 'active'
+                          try {
+                            const res = await authFetch(`/api/courses/${c.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) })
+                            const body = await res.json().catch(() => ({}))
+                            if (!res.ok) throw new Error(body.error || 'Failed to update status')
+                            await load()
+                          } catch (err) { setError(err.message) }
+                        }}
+                        className="p-1 rounded"
+                      >
+                        {(c.status || 'active') === 'active' ? <FiCheckCircle className="text-green-600" /> : ((c.status === 'disabled') ? <FiAlertTriangle className="text-yellow-500" /> : <FiSlash className="text-gray-500" />)}
+                      </button>
                     </td>
-                    <td className="p-2">
-                      <button onClick={() => editCourse(c)} className="mr-2 px-2 py-1 bg-yellow-400 rounded">Edit</button>
-                      <button onClick={() => openCreateClass(c)} className="mr-2 px-2 py-1 bg-indigo-600 text-white rounded">Create Class</button>
-                      <button onClick={() => removeCourse(c.id)} className="px-2 py-1 bg-red-500 text-white rounded">Delete</button>
+                    <td className="p-2 flex gap-2">
+                      <button onClick={() => editCourse(c)} title={t('actions.edit', 'Sửa')} className="p-2 rounded bg-yellow-400 hover:opacity-90">
+                        <FiEdit />
+                      </button>
+                      <button onClick={() => openCreateClass(c)} title={t('courses.create_class', 'Tạo lớp')} className="p-2 rounded bg-indigo-600 text-white hover:opacity-90">
+                        <FiPlusSquare />
+                      </button>
+                      <button onClick={() => removeCourse(c.id)} title={t('actions.delete', 'Xóa')} className="p-2 rounded bg-red-500 text-white hover:opacity-90">
+                        <FiTrash2 />
+                      </button>
                     </td>
                   </tr>
                 ))}

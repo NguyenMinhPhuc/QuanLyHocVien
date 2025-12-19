@@ -104,6 +104,44 @@ async function payDebt(req, res) {
 module.exports.debtSummary = debtSummary;
 module.exports.payDebt = payDebt;
 
+// PUT /api/students/:id/debt { outstanding }
+async function editDebt(req, res) {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { outstanding } = req.body || {};
+    const val = Number(outstanding);
+    if (isNaN(val) || val < 0) return res.status(400).json({ error: 'invalid outstanding value' });
+    const p = await db.getPool();
+    const q = `SELECT TOP 1 id FROM Enrollments WHERE student_id = @id AND (outstanding_balance IS NOT NULL) ORDER BY registration_date ASC`;
+    const rows = await p.request().input('id', id).query(q);
+    const en = rows && rows.recordset && rows.recordset[0];
+    if (!en) return res.status(400).json({ error: 'No enrollment found for student' });
+    const updated = await enrollmentService.updateEnrollment(en.id, { outstanding_balance: val });
+    res.json(updated);
+  } catch (err) {
+    console.error('students.editDebt error', err);
+    res.status(500).json({ error: 'Database error' });
+  }
+}
+
+// DELETE /api/students/:id/debt  -> clear outstanding balances
+async function deleteDebt(req, res) {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const p = await db.getPool();
+    const sql = `UPDATE Enrollments SET outstanding_balance = 0 WHERE student_id = @id AND (outstanding_balance IS NOT NULL AND outstanding_balance > 0); SELECT @@ROWCOUNT AS affected;`;
+    const result = await p.request().input('id', id).query(sql);
+    const affected = result && result.recordset && result.recordset[0] ? result.recordset[0].affected : 0;
+    res.json({ affected });
+  } catch (err) {
+    console.error('students.deleteDebt error', err);
+    res.status(500).json({ error: 'Database error' });
+  }
+}
+
+module.exports.editDebt = editDebt;
+module.exports.deleteDebt = deleteDebt;
+
 async function enrollmentsByStudent(req, res) {
   try {
     const id = parseInt(req.params.id, 10);

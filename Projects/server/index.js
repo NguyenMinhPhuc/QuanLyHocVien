@@ -17,6 +17,7 @@ const notificationsRouter = require('./routes/notifications');
 const parentsRouter = require('./routes/parents');
 const enrollmentsRouter = require('./routes/enrollments');
 const receiptsRouter = require('./routes/receipts');
+const searchRouter = require('./routes/search');
 const settingsRouter = require('./routes/settings');
 const filesRouter = require('./routes/files');
 const authRouter = require('./routes/auth');
@@ -53,15 +54,59 @@ app.use('/api/notifications', notificationsRouter);
 app.use('/api/parents', parentsRouter);
 app.use('/api', enrollmentsRouter);
 app.use('/api/receipts', receiptsRouter);
+app.use('/api/search', searchRouter);
 app.use('/api/settings', settingsRouter);
 app.use('/api/files', filesRouter);
 
 // serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
-// example protected route
-app.get('/api/me', authenticateToken, (req, res) => {
-  res.json({ id: req.user.id, role: req.user.role });
+// example protected route - return richer user profile
+const db = require('./db');
+app.get('/api/me', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user && req.user.id;
+    if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+
+    // read base user row
+    const urows = await db.query('SELECT id, username, role, status FROM Users WHERE id = @id', { id: userId });
+    const userRow = urows && urows[0];
+    if (!userRow) return res.json({ id: userId, role: req.user.role });
+
+    // Try to enrich profile from Teachers, Students, or Parents table linked by user_id
+    let profile = { id: userRow.id, username: userRow.username, role: userRow.role };
+
+    try {
+      const t = await db.query('SELECT name, email, phone FROM Teachers WHERE user_id = @id', { id: userId });
+      if (t && t[0]) {
+        profile = { ...profile, name: t[0].name, email: t[0].email, phone: t[0].phone };
+        return res.json(profile);
+      }
+    } catch (e) { /* ignore and try next */ }
+
+    try {
+      const s = await db.query('SELECT name, email, phone FROM Students WHERE user_id = @id', { id: userId });
+      if (s && s[0]) {
+        profile = { ...profile, name: s[0].name, email: s[0].email, phone: s[0].phone };
+        return res.json(profile);
+      }
+    } catch (e) { /* ignore and try next */ }
+
+    try {
+      const p = await db.query('SELECT name, email, phone FROM Parents WHERE user_id = @id', { id: userId });
+      if (p && p[0]) {
+        profile = { ...profile, name: p[0].name, email: p[0].email, phone: p[0].phone };
+        return res.json(profile);
+      }
+    } catch (e) { /* ignore */ }
+
+    // fallback: return the basic user info
+    profile.name = profile.username;
+    return res.json(profile);
+  } catch (err) {
+    console.error('GET /api/me error', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // basic health

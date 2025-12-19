@@ -64,4 +64,23 @@ router.post('/:id/pay',
   }
 );
 
+router.put('/:id/debt',
+  param('id').isInt().withMessage('id must be integer'),
+  body('outstanding').exists().withMessage('outstanding is required'),
+  async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    return controller.editDebt(req, res, next);
+  }
+);
+
+router.delete('/:id/debt',
+  param('id').isInt().withMessage('id must be integer'),
+  async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    return controller.deleteDebt(req, res, next);
+  }
+);
+
 module.exports = router;

@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const controller = require('../controllers/attendanceController');
+const attendanceController = require('../controllers/attendanceController');
+const { authenticateToken, requireRole } = require('../middleware/auth');
 
-router.get('/', controller.listAttendance);
-router.get('/:id', controller.getAttendance);
-router.post('/', controller.createAttendance);
-router.put('/:id', controller.updateAttendance);
-router.delete('/:id', controller.deleteAttendance);
+// Teacher flows
+router.get('/my-classes', authenticateToken, requireRole('teacher', 'admin'), attendanceController.getMyClasses);
+router.get('/class/:classId/students', authenticateToken, requireRole('teacher', 'admin'), attendanceController.getClassStudentsForDate);
+router.post('/class/:classId/records', authenticateToken, requireRole('teacher', 'admin'), attendanceController.postClassAttendance);
 
 module.exports = router;
+

@@ -70,7 +70,7 @@ export default function SettingsIndex() {
         <div>
           <label className="block text-sm font-medium">Receipt logo URL</label>
           <div className="flex gap-2 items-center">
-            <input value={logo} onChange={e => setLogo(e.target.value)} placeholder="https://.../logo.png" className="p-2 border rounded w-full" />
+            <input value={logo} onChange={e => setLogo(e.target.value)} placeholder="https://.../logo.png" className="p-2 border rounded w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" />
             <label className="p-2 bg-gray-100 border rounded cursor-pointer">
               Upload
               <input type="file" accept="image/*" onChange={uploadFile} style={{ display: 'none' }} />
@@ -82,7 +82,7 @@ export default function SettingsIndex() {
         <div>
           <label className="block text-sm font-medium">Receipt template (background)</label>
           <div className="flex gap-2 items-center">
-            <input value={template} onChange={e => setTemplate(e.target.value)} placeholder="https://.../template.png" className="p-2 border rounded w-full" />
+            <input value={template} onChange={e => setTemplate(e.target.value)} placeholder="https://.../template.png" className="p-2 border rounded w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" />
             <label className="p-2 bg-gray-100 border rounded cursor-pointer">
               Upload
               <input type="file" accept="image/*" onChange={uploadTemplate} style={{ display: 'none' }} />
@@ -93,7 +93,7 @@ export default function SettingsIndex() {
 
         <div>
           <label className="block text-sm font-medium">Center phone</label>
-          <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="0123-456-789" className="p-2 border rounded w-full" />
+          <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="0123-456-789" className="p-2 border rounded w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" />
         </div>
 
         <div className="flex items-center gap-2">

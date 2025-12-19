@@ -96,6 +96,21 @@ async function deleteClass(id) {
   return result.recordset[0];
 }
 
+async function getClassesByTeacherUser(userId, date = null) {
+  const p = await db.getPool();
+  const req = p.request().input('user_id', userId);
+  if (date) req.input('date', date);
+  const result = await req.execute('sp_classes_get_by_teacher_user');
+  return result.recordset || [];
+}
+
+async function checkClassOwnedByUser(classId, userId) {
+  const p = await db.getPool();
+  const result = await p.request().input('class_id', classId).input('user_id', userId).execute('sp_class_teacher_owns');
+  const row = result && result.recordset && result.recordset[0];
+  return !!(row && row.owns);
+}
+
 async function getStudentsByClass(classId) {
   const p = await db.getPool();
   const result = await p.request().input('class_id', classId).execute('sp_class_students_get_by_class');
@@ -115,10 +130,14 @@ async function removeStudentFromClass(classId, studentId) {
 }
 
 async function updateStudentStatus(classId, studentId, status) {
-  // Update the ClassStudents.status for a given class and student. Returns rows affected.
-  const sql = `UPDATE ClassStudents SET status = @status WHERE class_id = @class_id AND student_id = @student_id; SELECT @@ROWCOUNT AS rows_affected;`;
-  const rows = await db.query(sql, { status, class_id: classId, student_id: studentId });
-  return rows && rows[0];
+  // Update the ClassStudents.status via stored proc for consistency.
+  const p = await db.getPool();
+  const result = await p.request()
+    .input('class_id', classId)
+    .input('student_id', studentId)
+    .input('status', status)
+    .execute('sp_class_students_update_status');
+  return result && result.recordset && result.recordset[0];
 }
 
 async function getTeachersByClass(classId) {
@@ -139,4 +158,20 @@ async function removeTeacherFromClass(classId, teacherId) {
   return result.recordset && result.recordset[0];
 }
 
-module.exports = { getAllClasses, getAllClassesWithReservedCount, getClassById, createClass, updateClass, deleteClass, getStudentsByClass, addStudentToClass, removeStudentFromClass, updateStudentStatus, getTeachersByClass, addTeacherToClass, removeTeacherFromClass };
+module.exports = {
+  getAllClasses,
+  getAllClassesWithReservedCount,
+  getClassById,
+  createClass,
+  updateClass,
+  deleteClass,
+  getClassesByTeacherUser,
+  checkClassOwnedByUser,
+  getStudentsByClass,
+  addStudentToClass,
+  removeStudentFromClass,
+  updateStudentStatus,
+  getTeachersByClass,
+  addTeacherToClass,
+  removeTeacherFromClass
+};

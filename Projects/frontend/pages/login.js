@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
+import Head from 'next/head'
 import { authFetch } from '../lib/auth'
 import { t } from '../lib/i18n'
 
@@ -25,13 +26,9 @@ export default function Login() {
         body: JSON.stringify({ username: username.trim(), password })
       })
 
-      // Some servers set cookies and return no JSON (204 or empty body).
-      // Safely attempt to parse JSON only when present.
       let data = null
       const contentType = res.headers.get('content-type') || ''
-      if (contentType.includes('application/json')) {
-        data = await res.json()
-      }
+      if (contentType.includes('application/json')) data = await res.json()
 
       if (!res.ok) {
         const msg = (data && (data.error || data.message)) || `Lỗi: ${res.status}`
@@ -40,8 +37,6 @@ export default function Login() {
         return
       }
 
-      // Success: backend should set HttpOnly cookies (access + refresh).
-      // Redirect to next or home.
       const next = router.query.next || '/'
       router.replace(next)
     } catch (err) {
@@ -52,22 +47,59 @@ export default function Login() {
   }
 
   return (
-    <div style={{ maxWidth: 420, margin: '40px auto', padding: 20, border: '1px solid #eee', borderRadius: 6 }}>
-      <h1 style={{ marginBottom: 12 }}>{t('login.title', 'Đăng nhập')}</h1>
-      <form onSubmit={submit}>
-        <div style={{ marginBottom: 10 }}>
-          <label style={{ display: 'block', marginBottom: 6 }}>{t('login.username', 'Tên đăng nhập')}</label>
-          <input value={username} onChange={e => setUsername(e.target.value)} style={{ width: '100%', padding: 8, boxSizing: 'border-box' }} />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white to-gray-50 dark:from-slate-900 dark:to-slate-800 p-4">
+      <Head>
+        <title>{t('login.title', 'Đăng nhập')} - {t('app.title', 'Quản lý học viên')}</title>
+      </Head>
+
+      <div className="w-full max-w-md">
+        <div className="mb-6 flex justify-center">
+          <div className="w-16 h-16 rounded-lg bg-blue-600 text-white flex items-center justify-center text-2xl font-bold">CM</div>
         </div>
-        <div style={{ marginBottom: 10 }}>
-          <label style={{ display: 'block', marginBottom: 6 }}>{t('login.password', 'Mật khẩu')}</label>
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} style={{ width: '100%', padding: 8, boxSizing: 'border-box' }} />
+
+        <div className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-lg rounded-lg p-6">
+          <h2 className="text-center text-2xl font-semibold text-slate-800 dark:text-slate-100">{t('login.title', 'Đăng nhập')}</h2>
+          <p className="text-center text-sm text-slate-500 dark:text-slate-300 mt-2 mb-4">{t('login.subtitle', 'Đăng nhập để tiếp tục')}</p>
+
+          {error && <div className="text-sm text-red-600 dark:text-red-400 mb-3">{error}</div>}
+
+          <form onSubmit={submit} className="space-y-4">
+            <div>
+              <label className="block text-sm text-slate-700 dark:text-slate-200 mb-1">{t('login.username', 'Tên đăng nhập')}</label>
+              <input
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                className="w-full rounded-md p-3 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-400"
+                placeholder={t('login.username_placeholder', 'Nhập tên đăng nhập')}
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-slate-700 dark:text-slate-200 mb-1">{t('login.password', 'Mật khẩu')}</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="w-full rounded-md p-3 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-400"
+                placeholder={t('login.password_placeholder', 'Nhập mật khẩu')}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:opacity-60"
+            >
+              {loading ? t('login.processing', 'Đang xử lý...') : t('login.submit', 'Đăng nhập')}
+            </button>
+          </form>
+
+          <div className="mt-4 text-center text-sm text-slate-500 dark:text-slate-300">
+            <a href="/register" className="text-blue-600 dark:text-blue-400 hover:underline">{t('login.no_account', 'Chưa có tài khoản? Đăng ký')}</a>
+          </div>
         </div>
-        <div style={{ marginTop: 10 }}>
-          <button type="submit" disabled={loading} style={{ padding: '8px 16px' }}>{loading ? t('login.processing', 'Đang xử lý...') : t('login.submit', 'Đăng nhập')}</button>
-        </div>
-        {error && <div style={{ color: 'red', marginTop: 12 }}>{error}</div>}
-      </form>
+      </div>
     </div>
   )
 }

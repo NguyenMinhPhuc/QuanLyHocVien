@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { authFetch } from '../lib/auth'
-import { formatWithThousands } from '../lib/numberFormat'
+import { sanitizeNumericInput } from '../lib/numberFormat'
+import { FiDollarSign, FiEdit, FiTrash2 } from 'react-icons/fi'
 import { t } from '../lib/i18n'
 
 function qs(params) {
@@ -26,6 +27,8 @@ export default function DebtsPage() {
   const [currentStudent, setCurrentStudent] = useState(null)
   const [payAmount, setPayAmount] = useState('')
   const [payMethod, setPayMethod] = useState('cash')
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editAmount, setEditAmount] = useState('')
   const [showClassesModal, setShowClassesModal] = useState(false)
   const [studentClasses, setStudentClasses] = useState([])
   const [loadingClasses, setLoadingClasses] = useState(false)
@@ -66,6 +69,42 @@ export default function DebtsPage() {
     setShowPayModal(true)
   }
 
+  function openEdit(student) {
+    setCurrentStudent(student)
+    setEditAmount(String(Number(student.total_outstanding || 0)))
+    setShowEditModal(true)
+  }
+
+  async function submitEdit(e) {
+    e.preventDefault()
+    if (!currentStudent) return
+    try {
+      const outstanding = Number(String(editAmount || ''))
+      if (isNaN(outstanding) || outstanding < 0) return setError('Giá trị không hợp lệ')
+      const res = await authFetch(`/api/students/${currentStudent.id}/debt`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ outstanding }) })
+      const data = await parseResponse(res)
+      if (!res.ok) {
+        const msg = typeof data === 'object' ? (data.error || JSON.stringify(data)) : (data || 'Failed')
+        throw new Error(msg)
+      }
+      setShowEditModal(false)
+      await load()
+    } catch (err) { setError(err.message) }
+  }
+
+  async function deleteDebt(student) {
+    if (!confirm(`Xác nhận xóa công nợ của ${student.name || ''}?`)) return
+    try {
+      const res = await authFetch(`/api/students/${student.id}/debt`, { method: 'DELETE' })
+      const data = await parseResponse(res)
+      if (!res.ok) {
+        const msg = typeof data === 'object' ? (data.error || JSON.stringify(data)) : (data || 'Failed')
+        throw new Error(msg)
+      }
+      await load()
+    } catch (err) { setError(err.message) }
+  }
+
   async function openStudentClasses(student) {
     setCurrentStudent(student)
     setStudentClasses([])
@@ -90,14 +129,29 @@ export default function DebtsPage() {
     e.preventDefault()
     if (!currentStudent) return
     try {
-      const amount = Number(String(payAmount || '').replace(/,/g, ''))
+      const amount = Number(String(payAmount || ''))
       if (!amount || amount <= 0) return setError('Số tiền không hợp lệ')
       const res = await authFetch(`/api/students/${currentStudent.id}/pay`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount, method: payMethod }) })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed')
+      const data = await parseResponse(res)
+      if (!res.ok) {
+        const msg = typeof data === 'object' ? (data.error || JSON.stringify(data)) : (data || 'Failed')
+        throw new Error(msg)
+      }
       setShowPayModal(false)
       await load()
     } catch (err) { setError(err.message) }
+  }
+
+  // helper: parse JSON response safely, fallback to text when server returns HTML or text
+  async function parseResponse(res) {
+    const ct = res && res.headers && res.headers.get ? (res.headers.get('content-type') || '') : ''
+    try {
+      if (ct.includes('application/json')) return await res.json()
+      const text = await res.text()
+      return text
+    } catch (err) {
+      try { return await res.text() } catch { return null }
+    }
   }
 
   return (
@@ -106,15 +160,18 @@ export default function DebtsPage() {
         <h1 className="text-2xl font-semibold">{t('debts.title', 'Quản lý công nợ')}</h1>
         <div className="mt-3 bg-white dark:bg-slate-800 p-3 rounded">
           <div className="flex gap-2 items-center flex-wrap">
-            <input placeholder={t('debts.search.placeholder', 'Tìm kiếm tên hoặc sđt')} value={query} onChange={e => { setQuery(e.target.value); setPage(1); }} className="p-2 border rounded" />
-            <input placeholder={t('debts.minOutstanding', 'Min nợ')} value={minOutstanding} onChange={e => { setMinOutstanding(e.target.value); setPage(1); }} className="p-2 border rounded w-36" />
-            <input placeholder={t('debts.maxOutstanding', 'Max nợ')} value={maxOutstanding} onChange={e => { setMaxOutstanding(e.target.value); setPage(1); }} className="p-2 border rounded w-36" />
-            <select value={hasDebtFilter} onChange={e => { setHasDebtFilter(e.target.value); setPage(1); }} className="p-2 border rounded">
+            <div className="relative">
+              <input placeholder={t('debts.search.placeholder', 'Tìm kiếm tên hoặc sđt')} value={query} onChange={e => { setQuery(e.target.value); setPage(1); }} className="p-2 pr-8 border rounded bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
+              {query && <button onClick={() => { setQuery(''); setPage(1); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700">×</button>}
+            </div>
+            <input placeholder={t('debts.minOutstanding', 'Min nợ')} value={minOutstanding} onChange={e => { setMinOutstanding(e.target.value); setPage(1); }} className="p-2 border rounded w-36 bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
+            <input placeholder={t('debts.maxOutstanding', 'Max nợ')} value={maxOutstanding} onChange={e => { setMaxOutstanding(e.target.value); setPage(1); }} className="p-2 border rounded w-36 bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
+            <select value={hasDebtFilter} onChange={e => { setHasDebtFilter(e.target.value); setPage(1); }} className="p-2 border rounded bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600">
               <option value="any">{t('debts.filter.any', 'Tất cả')}</option>
               <option value="with">{t('debts.filter.with', 'Có nợ')}</option>
               <option value="without">{t('debts.filter.without', 'Không nợ')}</option>
             </select>
-            <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }} className="p-2 border rounded">
+            <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }} className="p-2 border rounded bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600">
               <option value={10}>10</option>
               <option value={20}>20</option>
               <option value={50}>50</option>
@@ -152,7 +209,17 @@ export default function DebtsPage() {
                   <td className="p-2">{Number(r.total_paid || 0).toLocaleString()}</td>
                   <td className="p-2">{Number((r.total_outstanding || 0) - (r.total_paid || 0)).toLocaleString()}</td>
                   <td className="p-2">{r.parent_name || ''}{r.parent_phone ? ` (${r.parent_phone})` : ''}</td>
-                  <td className="p-2"><button onClick={() => openPay(r)} className="px-2 py-1 bg-green-600 text-white rounded">{t('debts.actions.pay', 'Thanh toán')}</button></td>
+                  <td className="p-2 flex gap-2">
+                    <button onClick={() => openPay(r)} title={t('debts.actions.pay', 'Thanh toán')} className="p-2 rounded bg-green-600 text-white hover:opacity-90">
+                      <FiDollarSign />
+                    </button>
+                    <button onClick={() => openEdit(r)} title="Sửa công nợ" className="p-2 rounded bg-yellow-500 text-white hover:opacity-90">
+                      <FiEdit />
+                    </button>
+                    <button onClick={() => deleteDebt(r)} title="Xóa công nợ" className="p-2 rounded bg-red-600 text-white hover:opacity-90">
+                      <FiTrash2 />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -177,13 +244,29 @@ export default function DebtsPage() {
             <form onSubmit={submitPay} className="grid gap-2">
               <div>
                 <label className="block text-sm">Amount</label>
-                <input type="text" value={payAmount} onChange={e => setPayAmount(e.target.value)} className="p-2 border rounded w-full" />
+                <input type="text" inputMode="decimal" value={payAmount} onChange={e => setPayAmount(sanitizeNumericInput(e.target.value))} className="p-2 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
               </div>
               <div>
                 <label className="block text-sm">Method</label>
-                <select value={payMethod} onChange={e => setPayMethod(e.target.value)} className="p-2 border rounded w-full"><option value="cash">Tiền mặt</option><option value="transfer">Chuyển khoản</option></select>
+                <select value={payMethod} onChange={e => setPayMethod(e.target.value)} className="p-2 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600"><option value="cash">Tiền mặt</option><option value="transfer">Chuyển khoản</option></select>
               </div>
               <div className="flex gap-2 justify-end"><button type="button" onClick={() => setShowPayModal(false)} className="px-3 py-2 border rounded">Cancel</button><button type="submit" className="px-3 py-2 bg-green-600 text-white rounded">Pay</button></div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showEditModal && currentStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black opacity-40" onClick={() => setShowEditModal(false)}></div>
+          <div className="relative bg-white dark:bg-slate-800 dark:text-slate-100 p-6 rounded w-full max-w-md z-60">
+            <h3 className="text-lg font-semibold mb-2">Sửa công nợ — {currentStudent.name}</h3>
+            <form onSubmit={submitEdit} className="grid gap-2">
+              <div>
+                <label className="block text-sm">Outstanding</label>
+                <input type="text" inputMode="decimal" value={editAmount} onChange={e => setEditAmount(sanitizeNumericInput(e.target.value))} className="p-2 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
+              </div>
+              <div className="flex gap-2 justify-end"><button type="button" onClick={() => setShowEditModal(false)} className="px-3 py-2 border rounded">Cancel</button><button type="submit" className="px-3 py-2 bg-yellow-500 text-white rounded">Save</button></div>
             </form>
           </div>
         </div>

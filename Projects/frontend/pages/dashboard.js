@@ -109,17 +109,17 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="mt-6 p-4 bg-white rounded shadow">
+          <div className="mt-6 p-4 bg-white dark:bg-slate-800 rounded shadow text-slate-700 dark:text-slate-100">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">{t('dashboard.revenue', 'Doanh thu học phí theo tháng')}</h2>
               <div className="flex items-center gap-2">
-                <select value={year} onChange={e => setYear(Number(e.target.value))} className="border px-2 py-1 rounded">
+                <select value={year} onChange={e => setYear(Number(e.target.value))} className="border px-2 py-1 rounded bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600">
                   {Array.from({ length: 5 }).map((_, i) => {
                     const y = new Date().getFullYear() - i
                     return <option key={y} value={y}>{y}</option>
                   })}
                 </select>
-                <select value={classId} onChange={e => setClassId(e.target.value)} className="border px-2 py-1 rounded">
+                <select value={classId} onChange={e => setClassId(e.target.value)} className="border px-2 py-1 rounded bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600">
                   <option value="">{t('dashboard.all_classes', 'Tất cả lớp')}</option>
                   {classes.map(c => <option key={c.id} value={String(c.id)}>{c.name || c.id}</option>)}
                 </select>
@@ -139,19 +139,19 @@ export default function DashboardPage() {
                   return (
                     <g key={idx}>
                       <rect x={x} y={y} width={barW} height={h} rx="4" fill="#60a5fa" />
-                      <text x={x + barW / 2} y={216} fontSize="12" fill="#374151" textAnchor="middle">{monthNames[idx]}</text>
-                      <text x={x + barW / 2} y={y - 6} fontSize="11" fill="#111827" textAnchor="middle">{(r.total || 0).toLocaleString()}</text>
+                      <text x={x + barW / 2} y={216} fontSize="12" fill="currentColor" fillOpacity="0.8" textAnchor="middle">{monthNames[idx]}</text>
+                      <text x={x + barW / 2} y={y - 6} fontSize="11" fill="currentColor" fillOpacity="1" textAnchor="middle">{(r.total || 0).toLocaleString()}</text>
                     </g>
                   )
                 })}
                 {/* axes */}
-                <line x1="32" y1="200" x2="760" y2="200" stroke="#e5e7eb" strokeWidth="1" />
+                <line x1="32" y1="200" x2="760" y2="200" stroke="currentColor" strokeWidth="1" strokeOpacity="0.15" />
               </svg>
             </div>
           </div>
 
-          <div className="mt-6 p-4 bg-white rounded shadow">
-            <div className="text-sm text-slate-500">{t('dashboard.top_classes', 'Lớp đông nhất')}</div>
+          <div className="mt-6 p-4 bg-white dark:bg-slate-800 rounded shadow text-slate-700 dark:text-slate-100">
+            <div className="text-sm text-slate-500 dark:text-slate-400">{t('dashboard.top_classes', 'Lớp đông nhất')}</div>
             <div>
               <table className="min-w-full mt-2 text-sm">
                 <thead><tr><th className="text-left">{t('dashboard.class', 'Lớp')}</th><th className="text-left">{t('dashboard.teacher', 'Giáo viên')}</th><th className="text-right">{t('dashboard.students', 'Học viên')}</th></tr></thead>

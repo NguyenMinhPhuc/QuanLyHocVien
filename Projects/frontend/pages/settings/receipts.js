@@ -36,11 +36,11 @@ export default function ReceiptSettings() {
       <form onSubmit={save} className="grid gap-2 max-w-lg">
         <div>
           <label className="block text-sm">Logo URL</label>
-          <input value={logo} onChange={e => setLogo(e.target.value)} className="p-2 border rounded w-full" />
+          <input value={logo} onChange={e => setLogo(e.target.value)} className="p-2 border rounded w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" />
         </div>
         <div>
           <label className="block text-sm">Center phone</label>
-          <input value={phone} onChange={e => setPhone(e.target.value)} className="p-2 border rounded w-full" />
+          <input value={phone} onChange={e => setPhone(e.target.value)} className="p-2 border rounded w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" />
         </div>
         <div className="flex gap-2"><button className="px-3 py-2 bg-green-600 text-white rounded">Save</button></div>
       </form>

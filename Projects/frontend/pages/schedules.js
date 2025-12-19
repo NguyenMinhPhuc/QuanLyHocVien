@@ -198,19 +198,22 @@ export default function SchedulesPage() {
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-semibold">{t('schedules.title', 'Quản lý lịch')}</h1>
         <div className="flex items-center gap-2">
-          <input placeholder={t('schedules.search.placeholder', 'Tìm kiếm...')} value={q} onChange={e => { setQ(e.target.value); setPage(1) }} className="p-2 border rounded" />
-          <select value={filterClassId} onChange={e => { setFilterClassId(e.target.value); setPage(1) }} className="p-2 border rounded">
+          <div className="relative w-full max-w-xs">
+            <input placeholder={t('schedules.search.placeholder', 'Tìm kiếm...')} value={q} onChange={e => { setQ(e.target.value); setPage(1) }} className="p-2 pr-8 border rounded w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" />
+            {q && <button onClick={() => { setQ(''); setPage(1); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700">×</button>}
+          </div>
+          <select value={filterClassId} onChange={e => { setFilterClassId(e.target.value); setPage(1) }} className="p-2 border rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
             <option value="">{t('schedules.filter.all_classes', '-- Tất cả lớp --')}</option>
             {(classesList || []).map(c => (<option key={c.id} value={c.id}>{c.course_name || c.name || (`Class ${c.id}`)}</option>))}
           </select>
-          <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1) }} className="p-2 border rounded">
+          <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1) }} className="p-2 border rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
             <option value={5}>5</option>
             <option value={10}>10</option>
             <option value={20}>20</option>
             <option value={50}>50</option>
           </select>
           <button onClick={openCreate} className="px-3 py-2 bg-green-600 text-white rounded">{t('schedules.create', 'Tạo lịch')}</button>
-          <select value={exportClassId} onChange={e => setExportClassId(e.target.value)} className="p-2 border rounded">
+          <select value={exportClassId} onChange={e => setExportClassId(e.target.value)} className="p-2 border rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
             <option value="">{t('schedules.export.all', 'Tất cả lớp')}</option>
             {(classesList || []).map(c => (<option key={c.id} value={c.id}>{c.course_name || c.name || (`Class ${c.id}`)}</option>))}
           </select>
@@ -299,7 +302,7 @@ export default function SchedulesPage() {
             <form onSubmit={submit} className="grid gap-2">
               <div>
                 <label className="block text-sm">{t('schedules.form.class', 'Lớp')}</label>
-                <select value={editData.class_id} onChange={e => setEditData(d => ({ ...d, class_id: e.target.value }))} className="p-2 border rounded w-full">
+                <select value={editData.class_id} onChange={e => setEditData(d => ({ ...d, class_id: e.target.value }))} className="p-2 border rounded w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
                   <option value="">{t('schedules.form.select_class', '-- Chọn lớp --')}</option>
                   {(classesList || []).map(c => (
                     <option key={c.id} value={c.id}>{c.course_name || c.name || c.course || (`Class ${c.id}`)}</option>
@@ -331,16 +334,16 @@ export default function SchedulesPage() {
               </div>
               <div>
                 <label className="block text-sm">{t('schedules.form.specific_date', 'Ngày cụ thể (tùy chọn)')}</label>
-                <input required type="date" value={editData.schedule_date || ''} onChange={e => setEditData(d => ({ ...d, schedule_date: e.target.value }))} className="p-2 border rounded w-full" />
+                <input required type="date" value={editData.schedule_date || ''} onChange={e => setEditData(d => ({ ...d, schedule_date: e.target.value }))} className="p-2 border rounded w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" />
                 <div className="text-xs text-slate-500 mt-1">{t('schedules.form.specific_date_help', 'Nếu đặt ngày, lịch này sẽ là buổi cụ thể thay vì lặp theo thứ')}</div>
               </div>
               <div>
                 <label className="block text-sm">{t('schedules.form.start_time', 'Bắt đầu')}</label>
-                <input type="time" value={editData.start_time} onChange={e => setEditData(d => ({ ...d, start_time: e.target.value }))} className="p-2 border rounded w-full" />
+                <input type="time" value={editData.start_time} onChange={e => setEditData(d => ({ ...d, start_time: e.target.value }))} className="p-2 border rounded w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" />
               </div>
               <div>
                 <label className="block text-sm">{t('schedules.form.end_time', 'Kết thúc')}</label>
-                <input type="time" value={editData.end_time} onChange={e => setEditData(d => ({ ...d, end_time: e.target.value }))} className="p-2 border rounded w-full" />
+                <input type="time" value={editData.end_time} onChange={e => setEditData(d => ({ ...d, end_time: e.target.value }))} className="p-2 border rounded w-full bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" />
               </div>
               <div className="flex gap-2 justify-end"><button type="button" onClick={() => setShowModal(false)} className="px-3 py-2 border rounded">{t('actions.cancel', 'Hủy')}</button><button type="submit" className="px-3 py-2 bg-green-600 text-white rounded">{t('actions.confirm', 'Lưu')}</button></div>
             </form>

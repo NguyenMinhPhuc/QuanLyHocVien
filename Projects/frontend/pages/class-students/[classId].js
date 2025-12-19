@@ -279,12 +279,12 @@ export default function ClassStudentsPage() {
                     inputMode="decimal"
                     value={formatWithThousands(paymentAmount)}
                     onChange={e => setPaymentAmount(sanitizeNumericInput(e.target.value))}
-                    className="p-2 border rounded w-full"
+                    className="p-2 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600"
                   />
                 </div>
                 <div>
                   <label className="block text-sm">{t('class_students.payments.method', 'Hình thức')}</label>
-                  <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} className="p-2 border rounded w-full">
+                  <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} className="p-2 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600">
                     <option value="cash">Tiền mặt</option>
                     <option value="transfer">Chuyển khoản</option>
                   </select>
@@ -318,8 +318,9 @@ export default function ClassStudentsPage() {
                   value={targetSearch}
                   onChange={e => { setTargetSearch(e.target.value); setShowTargetDropdown(true); setTargetClassId('') }}
                   onFocus={() => setShowTargetDropdown(true)}
-                  className="p-2 border rounded w-full"
+                    className="p-2 pr-8 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600"
                 />
+                  {targetSearch && <button type="button" onClick={() => { setTargetSearch(''); setTargetClassId('') }} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700">×</button>}
                 <div className={`absolute left-0 right-0 mt-1 bg-white dark:bg-slate-800 dark:border-slate-700 border rounded max-h-56 overflow-auto z-40 ${showTargetDropdown ? '' : 'hidden'}`}>
                   {(availableClasses || []).filter(ac => {
                     const q = (targetSearch || '').toLowerCase().trim()
@@ -357,15 +358,15 @@ export default function ClassStudentsPage() {
             <form onSubmit={submitEdit} className="grid gap-2">
               <div>
                 <label className="block text-sm">{t('class_students.edit.status', 'Trạng thái')}</label>
-                <select value={editData.status} onChange={e => setEditData(d => ({ ...d, status: e.target.value }))} className="p-2 border rounded w-full"><option value="active">{t('class_students.status.active', 'Kích hoạt')}</option><option value="reserved">{t('class_students.status.reserved', 'Bảo lưu')}</option><option value="withdrawn">{t('class_students.status.withdrawn', 'Rút')}</option></select>
+                <select value={editData.status} onChange={e => setEditData(d => ({ ...d, status: e.target.value }))} className="p-2 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600"><option value="active">{t('class_students.status.active', 'Kích hoạt')}</option><option value="reserved">{t('class_students.status.reserved', 'Bảo lưu')}</option><option value="withdrawn">{t('class_students.status.withdrawn', 'Rút')}</option></select>
               </div>
               <div>
                 <label className="block text-sm">{t('class_students.edit.registration_date', 'Ngày đăng ký')}</label>
-                <input type="date" value={editData.registration_date || ''} onChange={e => setEditData(d => ({ ...d, registration_date: e.target.value }))} className="p-2 border rounded w-full" />
+                <input type="date" value={editData.registration_date || ''} onChange={e => setEditData(d => ({ ...d, registration_date: e.target.value }))} className="p-2 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
               </div>
               <div>
                 <label className="block text-sm">{t('class_students.edit.assigned_teacher_id', 'ID giáo viên')}</label>
-                <input value={editData.assigned_teacher_id || ''} onChange={e => setEditData(d => ({ ...d, assigned_teacher_id: e.target.value }))} className="p-2 border rounded w-full" />
+                <input value={editData.assigned_teacher_id || ''} onChange={e => setEditData(d => ({ ...d, assigned_teacher_id: e.target.value }))} className="p-2 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
               </div>
               <div className="flex gap-2 justify-end"><button type="button" onClick={() => setShowEditModal(false)} className="px-3 py-2 border rounded">{t('actions.cancel', 'Hủy')}</button><button type="submit" className="px-3 py-2 bg-green-600 text-white rounded">{t('actions.confirm', 'Lưu')}</button></div>
             </form>

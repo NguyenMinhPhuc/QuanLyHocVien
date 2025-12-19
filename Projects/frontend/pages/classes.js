@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { authFetch } from '../lib/auth'
+import { t } from '../lib/i18n'
 import { FiEye, FiTrash2, FiUserPlus, FiUserCheck, FiPlus, FiEdit3, FiUsers } from 'react-icons/fi'
 
 export default function Classes() {
@@ -208,7 +209,7 @@ export default function Classes() {
   }
 
   async function removeStudentFromClass(studentId) {
-    if (!confirm('Remove student from class?')) return
+    if (!confirm(t('classes.confirm_remove_student', 'Xác nhận gỡ học viên khỏi lớp?'))) return
     try {
       const res = await authFetch(`/api/classes/${detailClass.id}/students/${studentId}`, { method: 'DELETE' })
       if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b.error || 'Failed to remove') }
@@ -233,7 +234,7 @@ export default function Classes() {
   }
 
   async function removeTeacherFromClass(teacherId) {
-    if (!confirm('Remove teacher from class?')) return
+    if (!confirm(t('classes.confirm_remove_teacher', 'Xác nhận gỡ giáo viên khỏi lớp?'))) return
     try {
       const res = await authFetch(`/api/classes/${detailClass.id}/teachers/${teacherId}`, { method: 'DELETE' })
       if (!res.ok) { const b = await res.json().catch(() => ({})); throw new Error(b.error || 'Failed to remove') }
@@ -277,28 +278,31 @@ export default function Classes() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-semibold inline-block bg-indigo-100 text-indigo-800 dark:bg-slate-700 dark:text-indigo-200 px-3 py-1 rounded">Classes</h1>
+        <h1 className="text-2xl font-semibold inline-block bg-indigo-100 text-indigo-800 dark:bg-slate-700 dark:text-indigo-200 px-3 py-1 rounded">{t('classes.title', 'Classes')}</h1>
         <div>
-          <button title="New class" onClick={() => openCreateModal()} className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded hover:opacity-90"><FiPlus /> New</button>
+          <button title={t('classes.new_title', 'New class')} onClick={() => openCreateModal()} className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded hover:opacity-90"><FiPlus /> {t('classes.new', 'New')}</button>
         </div>
       </div>
 
       {error && <div className="mb-3 text-red-600">{error}</div>}
 
       <div className="bg-white dark:bg-slate-800 p-4 rounded">
-        {loading ? <div>Loading...</div> : (
+        {loading ? <div>{t('loading', 'Đang tải...')}</div> : (
           <div>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
               <div className="flex items-center gap-2 w-full md:w-1/2">
-                <input placeholder="Tìm kiếm lớp, khóa học, giáo viên..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="p-2 border rounded w-full" />
+                <div className="relative w-full">
+                  <input placeholder={t('classes.search_placeholder', 'Tìm kiếm lớp, khóa học, giáo viên...')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="p-2 pr-8 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
+                  {searchQuery && <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700">×</button>}
+                </div>
               </div>
               <div className="flex items-center gap-2">
-                <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="p-2 border rounded">
-                  <option value="all">All statuses</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
+                <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="p-2 border rounded bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600">
+                  <option value="all">{t('classes.filter_all', 'All statuses')}</option>
+                  <option value="active">{t('classes.filter_active', 'Active')}</option>
+                  <option value="inactive">{t('classes.filter_inactive', 'Inactive')}</option>
                 </select>
-                <select value={pageSize} onChange={e => setPageSize(Number(e.target.value))} className="p-2 border rounded">
+                <select value={pageSize} onChange={e => setPageSize(Number(e.target.value))} className="p-2 border rounded bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600">
                   <option value={5}>5 / page</option>
                   <option value={10}>10 / page</option>
                   <option value={20}>20 / page</option>
@@ -309,19 +313,19 @@ export default function Classes() {
             <table className="min-w-full table-auto">
               <thead>
                 <tr className="text-left">
-                  <th className="p-2">No.</th>
+                  <th className="p-2">{t('classes.col_no', 'No.')}</th>
                   <th className="p-2 cursor-pointer" onClick={() => { if (sortField === 'course_name') setSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setSortField('course_name'); setSortDir('asc') } }}>
-                    Course {sortField === 'course_name' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+                    {t('classes.col_course', 'Course')} {sortField === 'course_name' ? (sortDir === 'asc' ? '↑' : '↓') : ''}
                   </th>
-                  <th className="p-2">Students</th>
-                  <th className="p-2">Reserved</th>
-                  <th>Teacher(s)</th>
-                  <th>Room</th>
-                  <th>Schedule</th>
-                  <th>Reg. Open</th>
-                  <th>Start</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                  <th className="p-2">{t('classes.col_students', 'Students')}</th>
+                  <th className="p-2">{t('classes.col_reserved', 'Reserved')}</th>
+                  <th>{t('classes.col_teachers', 'Teacher(s)')}</th>
+                  <th>{t('classes.col_room', 'Room')}</th>
+                  <th>{t('classes.col_schedule', 'Schedule')}</th>
+                  <th>{t('classes.col_reg_open', 'Reg. Open')}</th>
+                  <th>{t('classes.col_start', 'Start')}</th>
+                  <th>{t('classes.col_status', 'Status')}</th>
+                  <th>{t('classes.col_actions', 'Actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -371,14 +375,14 @@ export default function Classes() {
                               <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${c.status === 'active' ? 'translate-x-4' : ''}`}></div>
                             </div>
                           </label>
-                          <span className="text-sm">{c.status}</span>
+                          <span className="text-sm">{t(`classes.status_${c.status}`, c.status)}</span>
                         </div>
                       </td>
                       <td className="p-2">
-                        <button title="Manage" onClick={() => handleManage(c)} className="mr-2 p-2 bg-sky-500 text-white rounded hover:opacity-90"><FiUsers /></button>
-                        <button title="View" onClick={() => loadClassDetails(c)} className="mr-2 p-2 bg-blue-500 text-white rounded hover:opacity-90"><FiEye /></button>
-                        <button title="Edit" onClick={() => openCreateModal(c)} className="mr-2 p-2 bg-yellow-500 text-white rounded hover:opacity-90"><FiEdit3 /></button>
-                        <button title="Delete" onClick={() => removeClass(c.id)} className="p-2 bg-red-500 text-white rounded hover:opacity-90"><FiTrash2 /></button>
+                        <button title={t('classes.action_manage', 'Manage')} onClick={() => handleManage(c)} className="mr-2 p-2 bg-sky-500 text-white rounded hover:opacity-90"><FiUsers /></button>
+                        <button title={t('classes.action_view', 'View')} onClick={() => loadClassDetails(c)} className="mr-2 p-2 bg-blue-500 text-white rounded hover:opacity-90"><FiEye /></button>
+                        <button title={t('classes.action_edit', 'Edit')} onClick={() => openCreateModal(c)} className="mr-2 p-2 bg-yellow-500 text-white rounded hover:opacity-90"><FiEdit3 /></button>
+                        <button title={t('classes.action_delete', 'Delete')} onClick={() => removeClass(c.id)} className="p-2 bg-red-500 text-white rounded hover:opacity-90"><FiTrash2 /></button>
                       </td>
                     </tr>
                   ))
@@ -404,15 +408,15 @@ export default function Classes() {
               const currentPage = Math.min(Math.max(1, page), pages)
               return (
                 <div className="flex items-center justify-between mt-3">
-                  <div className="text-sm">Showing {(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, total)} of {total}</div>
+                  <div className="text-sm">{t('classes.showing_prefix', 'Hiển thị')} {(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, total)} {t('classes.showing_of', 'của')} {total}</div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-2 py-1 border rounded disabled:opacity-50">Prev</button>
+                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-2 py-1 border rounded disabled:opacity-50">{t('pagination.prev', 'Prev')}</button>
                     <div className="flex items-center gap-1">
                       {Array.from({ length: pages }).map((_, idx) => (
                         <button key={idx} onClick={() => setPage(idx + 1)} className={`px-2 py-1 border rounded ${currentPage === idx + 1 ? 'bg-slate-200' : ''}`}>{idx + 1}</button>
                       ))}
                     </div>
-                    <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={currentPage === pages} className="px-2 py-1 border rounded disabled:opacity-50">Next</button>
+                    <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={currentPage === pages} className="px-2 py-1 border rounded disabled:opacity-50">{t('pagination.next', 'Next')}</button>
                   </div>
                 </div>
               )
@@ -425,43 +429,43 @@ export default function Classes() {
         <div className="fixed inset-0 z-40 flex items-center justify-center">
           <div className="absolute inset-0 bg-black opacity-40" onClick={() => setShowModal(false)}></div>
           <div className="relative bg-white dark:bg-slate-800 rounded-lg p-6 w-full max-w-3xl z-50">
-            <h2 className="text-lg font-semibold mb-3 inline-block bg-indigo-100 text-indigo-800 dark:bg-slate-700 dark:text-indigo-200 px-3 py-1 rounded">Class Details</h2>
+            <h2 className="text-lg font-semibold mb-3 inline-block bg-indigo-100 text-indigo-800 dark:bg-slate-700 dark:text-indigo-200 px-3 py-1 rounded">{t('classes.details_title', 'Class Details')}</h2>
             <div className="mb-3">
-              <div><strong>Course:</strong> {detailClass.course_name || detailClass.course_id}</div>
-              <div><strong>Teacher(s):</strong> {Array.isArray(classTeachers) && classTeachers.length ? classTeachers.map(t => t.name).join(', ') : '—'}</div>
-              <div><strong>Room:</strong> {detailClass.room}</div>
-              <div><strong>Schedule:</strong> {detailClass.schedule}</div>
-              <div><strong>Registration open:</strong> {detailClass.registration_open_date ? new Date(detailClass.registration_open_date).toLocaleDateString() : '—'}</div>
-              <div><strong>Registration close:</strong> {detailClass.registration_close_date ? new Date(detailClass.registration_close_date).toLocaleDateString() : '—'}</div>
-              <div><strong>Course start:</strong> {detailClass.course_start_date ? new Date(detailClass.course_start_date).toLocaleDateString() : '—'}</div>
-              <div><strong>Course end:</strong> {detailClass.course_end_date ? new Date(detailClass.course_end_date).toLocaleDateString() : '—'}</div>
+              <div><strong>{t('classes.field_course_label', 'Course')}:</strong> {detailClass.course_name || detailClass.course_id}</div>
+              <div><strong>{t('classes.field_teachers_label', 'Teacher(s)')}:</strong> {Array.isArray(classTeachers) && classTeachers.length ? classTeachers.map(t => t.name).join(', ') : '—'}</div>
+              <div><strong>{t('classes.field_room_label', 'Room')}:</strong> {detailClass.room}</div>
+              <div><strong>{t('classes.field_schedule_label', 'Schedule')}:</strong> {detailClass.schedule}</div>
+              <div><strong>{t('classes.field_reg_open_label', 'Registration open')}:</strong> {detailClass.registration_open_date ? new Date(detailClass.registration_open_date).toLocaleDateString() : '—'}</div>
+              <div><strong>{t('classes.field_reg_close_label', 'Registration close')}:</strong> {detailClass.registration_close_date ? new Date(detailClass.registration_close_date).toLocaleDateString() : '—'}</div>
+              <div><strong>{t('classes.field_start_label', 'Course start')}:</strong> {detailClass.course_start_date ? new Date(detailClass.course_start_date).toLocaleDateString() : '—'}</div>
+              <div><strong>{t('classes.field_end_label', 'Course end')}:</strong> {detailClass.course_end_date ? new Date(detailClass.course_end_date).toLocaleDateString() : '—'}</div>
             </div>
             <div className="mb-3">
-              <div className="flex items-center justify-between"><h3 className="font-semibold">Enrolled students</h3><div><button title="Add student" onClick={() => openAddStudent(detailClass)} className="p-2 bg-green-600 text-white rounded hover:opacity-90"><FiUserPlus /></button></div></div>
+              <div className="flex items-center justify-between"><h3 className="font-semibold">{t('classes.enrolled_students', 'Enrolled students')}</h3><div><button title={t('classes.add_student', 'Add student')} onClick={() => openAddStudent(detailClass)} className="p-2 bg-green-600 text-white rounded hover:opacity-90"><FiUserPlus /></button></div></div>
               <table className="min-w-full table-auto mt-2">
-                <thead><tr className="text-left"><th className="p-2">No.</th><th>Name</th><th>Phone</th><th>Email</th><th>Actions</th></tr></thead>
+                <thead><tr className="text-left"><th className="p-2">{t('classes.col_no', 'No.')}</th><th>{t('classes.col_name', 'Name')}</th><th>{t('classes.col_phone', 'Phone')}</th><th>{t('classes.col_email', 'Email')}</th><th>{t('classes.col_actions', 'Actions')}</th></tr></thead>
                 <tbody>
                   {classStudents.map((s, idx) => (
-                    <tr key={s.student_id} className="border-t"><td className="p-2">{idx + 1}</td><td className="p-2">{s.name}</td><td>{s.phone}</td><td>{s.email}</td><td className="p-2"><button title="Remove student" onClick={() => removeStudentFromClass(s.student_id)} className="p-2 bg-red-500 text-white rounded hover:opacity-90"><FiTrash2 /></button></td></tr>
+                    <tr key={s.student_id} className="border-t"><td className="p-2">{idx + 1}</td><td className="p-2">{s.name}</td><td>{s.phone}</td><td>{s.email}</td><td className="p-2"><button title={t('classes.remove_student', 'Remove student')} onClick={() => removeStudentFromClass(s.student_id)} className="p-2 bg-red-500 text-white rounded hover:opacity-90"><FiTrash2 /></button></td></tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
             <div className="mb-3">
-              <div className="flex items-center justify-between"><h3 className="font-semibold">Assigned teachers</h3><div><button title="Add teacher" onClick={() => openAddTeacher(detailClass)} className="p-2 bg-indigo-600 text-white rounded hover:opacity-90"><FiUserCheck /></button></div></div>
+              <div className="flex items-center justify-between"><h3 className="font-semibold">{t('classes.assigned_teachers', 'Assigned teachers')}</h3><div><button title={t('classes.add_teacher', 'Add teacher')} onClick={() => openAddTeacher(detailClass)} className="p-2 bg-indigo-600 text-white rounded hover:opacity-90"><FiUserCheck /></button></div></div>
               <table className="min-w-full table-auto mt-2">
-                <thead><tr className="text-left"><th className="p-2">No.</th><th>Name</th><th>Phone</th><th>Email</th><th>Actions</th></tr></thead>
+                <thead><tr className="text-left"><th className="p-2">{t('classes.col_no', 'No.')}</th><th>{t('classes.col_name', 'Name')}</th><th>{t('classes.col_phone', 'Phone')}</th><th>{t('classes.col_email', 'Email')}</th><th>{t('classes.col_actions', 'Actions')}</th></tr></thead>
                 <tbody>
                   {classTeachers.map((t, idx) => (
-                    <tr key={t.teacher_id} className="border-t"><td className="p-2">{idx + 1}</td><td className="p-2">{t.name}</td><td>{t.phone}</td><td>{t.email}</td><td className="p-2"><button title="Remove teacher" onClick={() => removeTeacherFromClass(t.teacher_id)} className="p-2 bg-red-500 text-white rounded hover:opacity-90"><FiTrash2 /></button></td></tr>
+                    <tr key={t.teacher_id} className="border-t"><td className="p-2">{idx + 1}</td><td className="p-2">{t.name}</td><td>{t.phone}</td><td>{t.email}</td><td className="p-2"><button title={t('classes.remove_teacher', 'Remove teacher')} onClick={() => removeTeacherFromClass(t.teacher_id)} className="p-2 bg-red-500 text-white rounded hover:opacity-90"><FiTrash2 /></button></td></tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
             <div className="flex justify-end gap-2 mt-4">
-              <button onClick={() => setShowModal(false)} className="px-3 py-2 border rounded">Close</button>
+              <button onClick={() => setShowModal(false)} className="px-3 py-2 border rounded">{t('actions.close', 'Close')}</button>
             </div>
           </div>
         </div>
@@ -471,54 +475,54 @@ export default function Classes() {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black opacity-40" onClick={() => { setShowCreateModal(false); setEditingId(null); }}></div>
           <div className="relative bg-white dark:bg-slate-800 rounded-lg p-6 w-full max-w-lg z-60">
-            <h3 className="text-lg font-semibold mb-3">{editingId ? 'Edit Class' : 'Create New Class'}</h3>
+            <h3 className="text-lg font-semibold mb-3">{editingId ? t('classes.edit_title', 'Edit Class') : t('classes.create_title', 'Create New Class')}</h3>
             <form onSubmit={submitCreateClass} className="grid grid-cols-1 gap-3">
               <div>
-                <label className="block text-sm font-medium mb-1">Course</label>
-                <select value={createForm.course_id} onChange={e => setCreateForm(f => ({ ...f, course_id: e.target.value }))} className="p-2 border rounded w-full">
+                <label className="block text-sm font-medium mb-1">{t('classes.field_course', 'Course')}</label>
+                <select value={createForm.course_id} onChange={e => setCreateForm(f => ({ ...f, course_id: e.target.value }))} className="p-2 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600">
                   <option value="">-- choose course --</option>
                   {courses.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Primary teacher (optional)</label>
-                <select value={createForm.teacher_id} onChange={e => setCreateForm(f => ({ ...f, teacher_id: e.target.value }))} className="p-2 border rounded w-full">
+                <label className="block text-sm font-medium mb-1">{t('classes.field_teacher', 'Primary teacher (optional)')}</label>
+                <select value={createForm.teacher_id} onChange={e => setCreateForm(f => ({ ...f, teacher_id: e.target.value }))} className="p-2 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600">
                   <option value="">-- none --</option>
                   {teachers.map(t => (<option key={t.id} value={t.id}>{t.name}</option>))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Room</label>
-                <input value={createForm.room} onChange={e => setCreateForm(f => ({ ...f, room: e.target.value }))} className="p-2 border rounded w-full" />
+                <label className="block text-sm font-medium mb-1">{t('classes.field_room', 'Room')}</label>
+                <input value={createForm.room} onChange={e => setCreateForm(f => ({ ...f, room: e.target.value }))} className="p-2 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Start time</label>
-                  <input type="time" value={createForm.start_time} onChange={e => setCreateForm(f => ({ ...f, start_time: e.target.value }))} className="p-2 border rounded w-full" />
+                  <label className="block text-sm font-medium mb-1">{t('classes.field_start_time', 'Start time')}</label>
+                  <input type="time" value={createForm.start_time} onChange={e => setCreateForm(f => ({ ...f, start_time: e.target.value }))} className="p-2 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">End time</label>
-                  <input type="time" value={createForm.end_time} onChange={e => setCreateForm(f => ({ ...f, end_time: e.target.value }))} className="p-2 border rounded w-full" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Registration open</label>
-                  <input type="date" value={createForm.registration_open_date} onChange={e => setCreateForm(f => ({ ...f, registration_open_date: e.target.value }))} className="p-2 border rounded w-full" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Registration close</label>
-                  <input type="date" value={createForm.registration_close_date} onChange={e => setCreateForm(f => ({ ...f, registration_close_date: e.target.value }))} className="p-2 border rounded w-full" />
+                  <label className="block text-sm font-medium mb-1">{t('classes.field_end_time', 'End time')}</label>
+                  <input type="time" value={createForm.end_time} onChange={e => setCreateForm(f => ({ ...f, end_time: e.target.value }))} className="p-2 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Course start</label>
-                  <input type="date" value={createForm.course_start_date} onChange={e => setCreateForm(f => ({ ...f, course_start_date: e.target.value }))} className="p-2 border rounded w-full" />
+                  <label className="block text-sm font-medium mb-1">{t('classes.field_reg_open', 'Registration open')}</label>
+                  <input type="date" value={createForm.registration_open_date} onChange={e => setCreateForm(f => ({ ...f, registration_open_date: e.target.value }))} className="p-2 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Course end</label>
-                  <input type="date" value={createForm.course_end_date} onChange={e => setCreateForm(f => ({ ...f, course_end_date: e.target.value }))} className="p-2 border rounded w-full" />
+                  <label className="block text-sm font-medium mb-1">{t('classes.field_reg_close', 'Registration close')}</label>
+                  <input type="date" value={createForm.registration_close_date} onChange={e => setCreateForm(f => ({ ...f, registration_close_date: e.target.value }))} className="p-2 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-sm font-medium mb-1">{t('classes.field_course_start', 'Course start')}</label>
+                  <input type="date" value={createForm.course_start_date} onChange={e => setCreateForm(f => ({ ...f, course_start_date: e.target.value }))} className="p-2 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">{t('classes.field_course_end', 'Course end')}</label>
+                  <input type="date" value={createForm.course_end_date} onChange={e => setCreateForm(f => ({ ...f, course_end_date: e.target.value }))} className="p-2 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
                 </div>
               </div>
               <div className="flex justify-end gap-2 mt-2">
@@ -540,12 +544,13 @@ export default function Classes() {
                 <label className="block text-sm font-medium mb-1">Select existing student</label>
                 <div className="relative">
                   <input
-                    placeholder="Search or pick a student..."
+                    placeholder={t('classes.search_student_placeholder', 'Tìm hoặc chọn học viên...')}
                     value={studentSearch}
                     onChange={e => { setStudentSearch(e.target.value); setShowStudentDropdown(true) }}
                     onFocus={() => setShowStudentDropdown(true)}
-                    className="p-2 border rounded w-full"
+                    className="p-2 pr-8 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600"
                   />
+                  {studentSearch && <button type="button" onClick={() => setStudentSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700">×</button>}
                   <div className={`absolute left-0 right-0 mt-1 bg-white dark:bg-slate-800 border rounded max-h-48 overflow-auto z-30 ${showStudentDropdown ? '' : 'hidden'}`}>
                     {students
                       .filter(s => !classStudents.some(cs => cs.student_id === s.id))
@@ -557,23 +562,23 @@ export default function Classes() {
                         </div>
                       ))}
                     {students.filter(s => !classStudents.some(cs => cs.student_id === s.id)).filter(s => (s.name || '').toLowerCase().includes(studentSearch.toLowerCase()) || (s.email || '').toLowerCase().includes(studentSearch.toLowerCase()) || (s.phone || '').toLowerCase().includes(studentSearch.toLowerCase())).length === 0 && (
-                      <div className="p-2 text-sm text-slate-500">No results</div>
+                      <div className="p-2 text-sm text-slate-500">{t('classes.no_results', 'Không có kết quả')}</div>
                     )}
                   </div>
                 </div>
               </div>
               <div className="pt-2">
-                <div className="text-sm font-medium mb-1">Or create new student</div>
+                <div className="text-sm font-medium mb-1">{t('classes.or_create_new_student', 'Hoặc tạo học viên mới')}</div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                  <input placeholder="Name" value={newStudent.name} onChange={e => setNewStudent(n => ({ ...n, name: e.target.value }))} className="p-2 border rounded" />
-                  <input placeholder="Email" value={newStudent.email} onChange={e => setNewStudent(n => ({ ...n, email: e.target.value }))} className="p-2 border rounded" />
-                  <input placeholder="Phone" value={newStudent.phone} onChange={e => setNewStudent(n => ({ ...n, phone: e.target.value }))} className="p-2 border rounded" />
+                  <input placeholder={t('classes.input_name', 'Name')} value={newStudent.name} onChange={e => setNewStudent(n => ({ ...n, name: e.target.value }))} className="p-2 border rounded bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
+                  <input placeholder={t('classes.input_email', 'Email')} value={newStudent.email} onChange={e => setNewStudent(n => ({ ...n, email: e.target.value }))} className="p-2 border rounded bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
+                  <input placeholder={t('classes.input_phone', 'Phone')} value={newStudent.phone} onChange={e => setNewStudent(n => ({ ...n, phone: e.target.value }))} className="p-2 border rounded bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600" />
                 </div>
               </div>
 
               <div className="flex justify-end gap-2 mt-4">
-                <button type="button" onClick={() => setShowAddStudent(false)} className="px-3 py-2 border rounded">Cancel</button>
-                <button type="submit" className="px-3 py-2 bg-green-600 text-white rounded">Add</button>
+                <button type="button" onClick={() => setShowAddStudent(false)} className="px-3 py-2 border rounded">{t('actions.cancel', 'Cancel')}</button>
+                <button type="submit" className="px-3 py-2 bg-green-600 text-white rounded">{t('classes.add', 'Add')}</button>
               </div>
             </form>
           </div>
@@ -589,12 +594,13 @@ export default function Classes() {
                 <label className="block text-sm font-medium mb-1">Select existing teacher</label>
                 <div className="relative">
                   <input
-                    placeholder="Search or pick a teacher..."
+                    placeholder={t('classes.search_teacher_placeholder', 'Tìm hoặc chọn giáo viên...')}
                     value={teacherSearch}
                     onChange={e => { setTeacherSearch(e.target.value); setShowTeacherDropdown(true) }}
                     onFocus={() => setShowTeacherDropdown(true)}
-                    className="p-2 border rounded w-full"
+                    className="p-2 pr-8 border rounded w-full bg-white dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600"
                   />
+                  {teacherSearch && <button type="button" onClick={() => setTeacherSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700">×</button>}
                   <div className={`absolute left-0 right-0 mt-1 bg-white dark:bg-slate-800 border rounded max-h-48 overflow-auto z-30 ${showTeacherDropdown ? '' : 'hidden'}`}>
                     {teachers
                       .filter(t => !classTeachers.some(ct => ct.teacher_id === t.id))
@@ -606,15 +612,15 @@ export default function Classes() {
                         </div>
                       ))}
                     {teachers.filter(t => !classTeachers.some(ct => ct.teacher_id === t.id)).filter(t => (t.name || '').toLowerCase().includes(teacherSearch.toLowerCase()) || (t.email || '').toLowerCase().includes(teacherSearch.toLowerCase()) || (t.phone || '').toLowerCase().includes(teacherSearch.toLowerCase())).length === 0 && (
-                      <div className="p-2 text-sm text-slate-500">No results</div>
+                      <div className="p-2 text-sm text-slate-500">{t('classes.no_results', 'Không có kết quả')}</div>
                     )}
                   </div>
                 </div>
               </div>
 
               <div className="flex justify-end gap-2 mt-4">
-                <button type="button" onClick={() => setShowAddTeacher(false)} className="px-3 py-2 border rounded">Cancel</button>
-                <button type="submit" className="px-3 py-2 bg-indigo-600 text-white rounded">Assign</button>
+                <button type="button" onClick={() => setShowAddTeacher(false)} className="px-3 py-2 border rounded">{t('actions.cancel', 'Cancel')}</button>
+                <button type="submit" className="px-3 py-2 bg-indigo-600 text-white rounded">{t('classes.assign', 'Assign')}</button>
               </div>
             </form>
           </div>
